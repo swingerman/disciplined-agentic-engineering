@@ -29,7 +29,7 @@ DAE sharpens these into a single workflow. The full methodology spec lives in [N
 |--------|---------|--------|
 | **[`engineer`](engineer/)** | The DAE methodology kit — feature intake, AC discovery, planning, verification | v0.1 — early skills shipping |
 | **[`atdd`](./)** | Acceptance Test Driven Development workflow with team orchestration and mutation testing | v0.4 — stable |
-| **`crap-analyzer`** | Change Risk Anti-Pattern analysis on changed code | Migration from `swingerman/skills` pending |
+| **[`crap-analyzer`](crap-analyzer/)** | Change Risk Anti-Pattern analysis on changed code; part of DAE's Light Verify (Checkpoint 7) | v0.1 — migrated from `swingerman/skills` |
 
 ## Install the marketplace
 
@@ -42,6 +42,7 @@ Then install plugins individually:
 ```shell
 /plugin install atdd@swingerman-atdd          # ATDD workflow + mutation testing
 /plugin install engineer@swingerman-atdd      # DAE methodology kit
+/plugin install crap-analyzer@swingerman-atdd # CRAP risk analysis on changed code
 ```
 
 Or test locally by cloning:
@@ -223,13 +224,18 @@ The plugin's preferred approach is to **build a project-specific mutation tool**
 ├── commands/               # atdd plugin commands
 ├── hooks/                  # atdd plugin hooks
 ├── skills/                 # atdd plugin skills (atdd, atdd-team, atdd-mutate)
-└── engineer/               # engineer plugin (DAE methodology kit)
+├── engineer/               # engineer plugin (DAE methodology kit)
+│   ├── .claude-plugin/
+│   │   └── plugin.json
+│   └── skills/
+│       ├── discuss/
+│       ├── feature-init/
+│       └── discover-acs/
+└── crap-analyzer/          # crap-analyzer plugin (CRAP risk analysis)
     ├── .claude-plugin/
     │   └── plugin.json
     └── skills/
-        ├── discuss/
-        ├── feature-init/
-        └── discover-acs/
+        └── crap-analyzer/
 ```
 
 ## Attribution

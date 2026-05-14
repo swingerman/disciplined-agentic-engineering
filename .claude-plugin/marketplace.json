@@ -38,6 +38,22 @@
       "keywords": ["dae", "disciplined-agentic-engineering", "methodology", "ai-development", "tdd", "atdd", "engineering"],
       "category": "development-workflows",
       "tags": ["methodology", "ai-development", "engineering-workflow", "spec-driven-design"]
+    },
+    {
+      "name": "crap-analyzer",
+      "source": "./crap-analyzer",
+      "description": "Analyze recently-changed code for Change Risk Anti-Patterns. Multi-language (TS/JS, Python, Java, Kotlin, Go, Ruby, C#, Rust, PHP) with auto-discovered coverage toolchain. Part of DAE's Light Verify tier (Checkpoint 7).",
+      "version": "0.1.0",
+      "author": {
+        "name": "Miklos Szanyi",
+        "url": "https://github.com/swingerman"
+      },
+      "homepage": "https://github.com/swingerman/atdd/tree/main/crap-analyzer",
+      "repository": "https://github.com/swingerman/atdd",
+      "license": "MIT",
+      "keywords": ["code-quality", "testing", "coverage", "refactoring", "cyclomatic-complexity", "crap"],
+      "category": "code-quality",
+      "tags": ["testing", "coverage", "refactoring", "complexity", "dae"]
     }
   ]
 }

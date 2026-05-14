@@ -1,0 +1,13 @@
+{
+  "name": "crap-analyzer",
+  "version": "0.1.0",
+  "description": "Analyze recently-changed code for Change Risk Anti-Patterns. Computes CRAP per changed function across TypeScript, JavaScript, Python, Java, Kotlin, Go, Ruby, C#, Rust, and PHP. Auto-discovers how the repo generates coverage and proposes refactors + test stubs.",
+  "author": {
+    "name": "Miklos Szanyi",
+    "url": "https://github.com/swingerman"
+  },
+  "homepage": "https://github.com/swingerman/atdd/tree/main/crap-analyzer",
+  "repository": "https://github.com/swingerman/atdd",
+  "license": "MIT",
+  "keywords": ["code-quality", "testing", "coverage", "refactoring", "cyclomatic-complexity", "crap"]
+}
