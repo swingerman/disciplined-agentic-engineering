@@ -1,0 +1,11 @@
+{
+  "name": "engineer",
+  "version": "0.1.0",
+  "description": "Disciplined Agentic Engineering (DAE) — methodology kit for Claude Code. Skills that implement the DAE pipeline: feature intake, AC discovery, spec writing, planning, implementation, verification, hardening. Methodology home: https://www.notion.so/3505ecdee0e281b297c8d9c07ec6dad6",
+  "author": {
+    "name": "Miklos"
+  },
+  "repository": "https://github.com/swingerman/atdd",
+  "license": "MIT",
+  "keywords": ["dae", "disciplined-agentic-engineering", "methodology", "ai-development", "tdd", "atdd", "engineering"]
+}

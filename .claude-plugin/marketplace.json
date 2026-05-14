@@ -23,6 +23,21 @@
       "keywords": ["atdd", "acceptance-testing", "tdd", "given-when-then", "spec-driven-design", "uncle-bob", "bdd"],
       "category": "development-workflows",
       "tags": ["testing", "methodology", "acceptance-tests", "spec-driven-design", "ai-development"]
+    },
+    {
+      "name": "engineer",
+      "source": "./engineer",
+      "description": "Disciplined Agentic Engineering (DAE) — methodology kit for Claude Code. Skills that implement the DAE pipeline: feature intake, AC discovery, spec writing, planning, implementation, verification, hardening.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Miklos"
+      },
+      "homepage": "https://github.com/swingerman/atdd",
+      "repository": "https://github.com/swingerman/atdd",
+      "license": "MIT",
+      "keywords": ["dae", "disciplined-agentic-engineering", "methodology", "ai-development", "tdd", "atdd", "engineering"],
+      "category": "development-workflows",
+      "tags": ["methodology", "ai-development", "engineering-workflow", "spec-driven-design"]
     }
   ]
 }
