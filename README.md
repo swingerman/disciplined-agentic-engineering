@@ -1,15 +1,15 @@
 # Disciplined Agentic Engineering — methodology marketplace for Claude Code
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Claude Code Marketplace](https://img.shields.io/badge/Claude%20Code-Marketplace-blueviolet)](https://github.com/swingerman/atdd)
+[![Claude Code Marketplace](https://img.shields.io/badge/Claude%20Code-Marketplace-blueviolet)](https://github.com/swingerman/disciplined-agentic-engineering)
 
-> ⚠️ **Repo rename pending:** this marketplace is being renamed to `swingerman/disciplined-agentic-engineering`. The current URL (`swingerman/atdd`) will continue to work via GitHub's automatic redirect after the rename.
+> ℹ️ **Repo renamed:** this marketplace was previously `swingerman/atdd`. Existing `swingerman/atdd` URLs continue to work via GitHub's automatic redirect — no action needed unless you want to update local remotes (`git remote set-url origin https://github.com/swingerman/disciplined-agentic-engineering.git`).
 
-A Claude Code marketplace hosting the **Disciplined Agentic Engineering (DAE)** methodology kit — skills, agents, hooks, and commands that keep senior engineers in charge of architecture, behavior decisions, and verification while AI agents do the typing.
+A Claude Code marketplace hosting the **Disciplined Agentic Engineering (DAE)** methodology kit — skills, agents, hooks, and commands that keep software engineers in charge of architecture, behavior decisions, and verification while AI agents do the typing.
 
 ## What is Disciplined Agentic Engineering?
 
-DAE is a methodology for **engineering-led AI development**. AI agents do the coding; senior engineers stay in charge of architecture, performance, and feature validation. Discipline lives in the contracts at every layer (charter → ACs → specs → plans → verification) and in the loop-aware skills that enforce them.
+DAE is a methodology for **engineering-led AI development**. AI agents do the coding; software engineers stay in charge of architecture, performance, and feature validation. Discipline lives in the contracts at every layer (charter → ACs → specs → plans → verification) and in the loop-aware skills that enforce them.
 
 It's positioned in direct opposition to the failure mode of *loose-boundary, weak-check agentic engineering* — AI tools that produce code with no charter, no behavior contract, and no verification gates. DAE makes the boundaries explicit and the checks continuous.
 
@@ -27,7 +27,7 @@ DAE sharpens these into a single workflow. The full methodology spec lives in [N
 
 | Plugin | Purpose | Status |
 |--------|---------|--------|
-| **[`engineer`](engineer/)** | The DAE methodology kit — feature intake, AC discovery, planning, verification | v0.1 — early skills shipping |
+| **[`engineer`](engineer/)** | The DAE methodology kit — feature intake, AC discovery, planning, verification | v0.2 — 12 skills written; infra in progress |
 | **[`atdd`](./)** | Acceptance Test Driven Development workflow with team orchestration and mutation testing | v0.4 — stable |
 | **[`crap-analyzer`](crap-analyzer/)** | Change Risk Anti-Pattern analysis on changed code; part of DAE's Light Verify (Checkpoint 7) | v0.1 — migrated from `swingerman/skills` |
 
@@ -62,25 +62,43 @@ The DAE pipeline operates on **features**. Each feature runs through 8 checkpoin
 1.5 Ready (feature.md)  →  2 ACs  →  3 Spec  →  4 Plan  →  5 Implement  →  6 Refactor  →  7 Light Verify  →  8 Hardening (optional)
 ```
 
-Skills shipped today (v0.1):
+Skills (v0.2 — full skill set written; infrastructure layers in progress):
 
 | Skill | Command | Role |
 |-------|---------|------|
+| `onboard` | `/engineer.onboard` | Project bootstrap — charter, manifest, tracker, migration (Checkpoint 0) |
 | `discuss` | `/engineer.discuss` | Upstream funnel — divergent brainstorm; outcomes: drop / park / promote |
 | `feature-init` | `/engineer.feature-init` | Mechanics — produces `feature.md` (Ready contract), folder, branch, tracker entry |
-| `discover-acs` | `/engineer.discover-acs` | AC discovery interview — iterative passes (happy / edge / errors / cross-cutting); output: `acs.md` |
+| `prime-context` | `/engineer.prime-context` | Convergent load — orient on a Ready feature before AC discovery |
+| `discover-acs` | `/engineer.discover-acs` | AC discovery interview — iterative passes (happy / edge / errors / cross-cutting); output: `acs.md` (Checkpoint 2) |
+| `plan` | `/engineer.plan` | Architecture plan + structured Charter Check; output: `plan.md` (Checkpoint 4) |
+| `simplify` | `/engineer.simplify` | Three-subagent review (reuse / quality / efficiency) + charter-bound refactor (Checkpoint 6) |
+| `clarify` | `/engineer.clarify` | Single-artifact ambiguity resolution |
+| `consistency-check` | `/engineer.consistency-check` | Cross-artifact validation, read-only — errors + warnings |
+| `feature-edit` | `/engineer.feature-edit` | Intent-driven edits with downstream cascade orchestration |
+| `progress-log` | `/engineer.progress-log` | Propagation engine — handoffs → `progress.md` + tracker sync |
+| `session-summary` | `/engineer.session-summary` | Per-session `session-log.md` entry — pick up cleanly next session |
 
-Skills coming next: `prime-context`, `plan`, `simplify`, `clarify`, `consistency-check`, `progress-log`, `feature-edit`, `onboard`.
+Interoperates with the `atdd` plugin: `atdd:atdd` (Checkpoint 3 — Given/When/Then specs), `atdd:atdd-team` (Checkpoint 5 — implementation), `atdd:mutate` (Checkpoint 8 — hardening); and `crap-analyzer` (Checkpoint 7 — Light Verify).
 
 ### How DAE work flows
 
-1. **`/engineer.discuss`** — brainstorm an idea; agent surfaces outcome (drop / park / promote)
-2. **`/engineer.feature-init`** (invoked by discuss for park or promote) — creates the feature folder
-3. **`/engineer.discover-acs`** — interview to enumerate behaviors; produces `acs.md`
-4. **`/atdd:atdd`** (existing atdd plugin) — formalize ACs as Given/When/Then specs
-5. *(planning, implementation, verification — design pending)*
+1. **`/engineer.onboard`** — one-time: charter, manifest, tracker, `features/` (Checkpoint 0)
+2. **`/engineer.discuss`** — brainstorm an idea; agent surfaces outcome (drop / park / promote)
+3. **`/engineer.feature-init`** (invoked by discuss for park or promote) — creates the feature folder
+4. **`/engineer.prime-context`** — load working memory on the Ready feature
+5. **`/engineer.discover-acs`** — interview to enumerate behaviors; produces `acs.md` (Checkpoint 2)
+6. **`/atdd:atdd`** — formalize ACs as Given/When/Then specs (Checkpoint 3)
+7. **`/engineer.plan`** — architecture plan + Charter Check (Checkpoint 4)
+8. **`/atdd:atdd-team`** — implement against the specs (Checkpoint 5)
+9. **`/engineer.simplify`** — charter-bound clean-up (Checkpoint 6)
+10. **`crap-analyzer`** then optional **`atdd:mutate`** — verify + harden (Checkpoints 7–8)
+
+Cross-cutting throughout: `clarify`, `consistency-check`, `feature-edit`, `progress-log`, `session-summary`.
 
 Every agentic task ends with a structured handoff summary — the human knows when to re-engage after walking away.
+
+> **Status note:** all 12 skill definitions are written (v0.2). They reference foundation infrastructure — `methodology_root` resolution, tracker drivers, the `spec.md` → IR pipeline — that is still being built out. An end-to-end run is not yet expected to work; this is a design-complete, infrastructure-in-progress release.
 
 ### Methodology references
 
@@ -218,19 +236,19 @@ The plugin's preferred approach is to **build a project-specific mutation tool**
 ```
 .
 ├── .claude-plugin/
-│   ├── marketplace.json    # marketplace manifest (atdd + engineer)
+│   ├── marketplace.json    # marketplace manifest (atdd + engineer + crap-analyzer)
 │   └── plugin.json         # legacy single-plugin manifest (atdd at root)
 ├── agents/                 # atdd plugin agents
 ├── commands/               # atdd plugin commands
 ├── hooks/                  # atdd plugin hooks
 ├── skills/                 # atdd plugin skills (atdd, atdd-team, atdd-mutate)
-├── engineer/               # engineer plugin (DAE methodology kit)
+├── engineer/               # engineer plugin (DAE methodology kit — 12 skills)
 │   ├── .claude-plugin/
 │   │   └── plugin.json
-│   └── skills/
-│       ├── discuss/
-│       ├── feature-init/
-│       └── discover-acs/
+│   └── skills/             # onboard, discuss, feature-init, prime-context,
+│                           # discover-acs, plan, simplify, clarify,
+│                           # consistency-check, feature-edit, progress-log,
+│                           # session-summary
 └── crap-analyzer/          # crap-analyzer plugin (CRAP risk analysis)
     ├── .claude-plugin/
     │   └── plugin.json
