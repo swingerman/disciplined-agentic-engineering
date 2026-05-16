@@ -5,11 +5,15 @@ description: Use to bring a project into the DAE methodology, or to check an onb
 
 # onboard
 
-Checkpoint 0 — the DAE adoption ceremony. Establishes the charter, manifest, storage layout, and tracker, and migrates any existing spec-shaped work. Project-scope, run once. Every other DAE skill depends on what it produces.
+Checkpoint 0 — the DAE adoption ceremony. Establishes the charter, manifest, storage layout, and tracker. Project-scope, run once. Every other DAE skill depends on what it produces.
+
+**The goal.** Onboarding a project to DAE succeeds when there is a clear path to **full ATDD coverage of every feature — existing and new.** A new feature is born covered by going through the pipeline. An *existing* feature is covered retroactively: onboarding inventories what's there and produces a **consolidation backlog** that drives each one to coverage. Onboarding does not finish the migration — it sets the project on the path and makes the remaining work explicit.
+
+A feature is **fully ATDD-covered** when its folder has `feature.md`, `acs.md`, `spec.md` (+ `.build/spec.json` IR), and **generated acceptance tests that pass against the code**.
 
 ## When to use
 
-- **No `.engineer/manifest.yml`** → full onboard (Steps 1–8)
+- **No `.engineer/manifest.yml`** → full onboard (Steps 1–9)
 - **Manifest exists** → gap-check mode (validate, report gaps, don't re-onboard)
 
 **Not for:** starting a feature (`discuss` / `feature-init`, after onboard); changing an existing charter (edit it directly, PR'd).
@@ -30,9 +34,14 @@ Pre-filling from an existing codebase is encouraged. **Rubber-stamping is not.**
 3. **Create the manifest** — fill `.engineer/manifest.yml` (paths, roadmap/tracker, team, repos, quality thresholds, mutation, verification, autonomy, agentic_summary).
 4. **Tracking decision** — this is a human decision, not an agent default. Surface what the project appears to use (e.g. a repo full of Notion links → Notion) and ask the human to choose: `notion | github-projects | linear | jira | local`. `notion`: offer to create the tracker database (the `TrackedFeature` schema) or validate an existing one; API key via env var, never the manifest. `local`: feature folders are the tracker. Others: reserved — emit "not yet implemented". Never silently default to `local` to keep things moving.
 5. **Bootstrap layout** — create `features/`, empty `.engineer/discussions.log`; ensure `.build/` is gitignored.
-6. **Migrate existing work** — by current state: Speckit project (`.specify/` → `CHARTER.md` + `.engineer/`, `specs/NNN-slug/` → `features/NNN-slug/` with numbers inherited); plain `docs/specs/*.md` (move + split); GitHub Issues as specs (import one per slug); informal README specs (surface, prompt — don't auto-convert); greenfield (nothing). Always confirm before moving files.
-7. **Onboarding intake** — walk the repo for feature-shaped chunks not yet formalized; per confirmed one, invoke `feature-init` (onboarding-intake mode).
-8. **Handoff** — emit a summary.
+6. **Inventory existing features** — walk the repo (read-only) for every feature-shaped chunk. Sources: Speckit `specs/NNN-slug/`, feature branches, `docs/specs/*.md`, GitHub Issues used as specs, informal README specs. For each, record: source, slug, state (spec-only / in-progress / shipped / merged), **code co-locations** (which packages/dirs the feature's code lives in), and current DAE coverage (which of `feature.md` / `acs.md` / `spec.md` / acceptance tests already exist — usually none). Greenfield project → inventory is empty; skip to Step 9.
+7. **Write the consolidation backlog + seed the tracker** — two views of the same inventory:
+   - `.engineer/consolidation.md`: the feature inventory as a **coverage table** (one row per feature, a column per coverage artifact) plus prioritized consolidation tasks. The goal stated at the top: every row all-✅.
+   - **Seed the tracker** — upsert a `TrackedFeature` row for *every* inventoried feature, not just the formalized ones, so the tracker shows the whole consolidation effort at a glance from day one. Map the inventory state to `status` (shipped/merged → `done`, in-flight → `in-progress`, spec-only → `ready`). Leave `checkpoint` blank for features not yet in the DAE pipeline — `consolidation.md`'s coverage columns track their ATDD-coverage progress until they enter it.
+8. **Formalize the starting features** — with the human, pick the 1–2 most urgent features from the backlog and run `feature-init` (onboarding-intake mode) on each now, so the project leaves onboarding with momentum. The rest stay as backlog tasks — do NOT formalize all of them in one onboard run.
+9. **Handoff** — emit a summary; `recommended_next` points at the top consolidation-backlog task.
+
+**Migration is not done inside `onboard`.** Moving `specs/NNN-slug/` → `features/NNN-slug/`, backfilling `acs.md`/`spec.md`, and generating acceptance tests are *consolidation tasks* — worked down feature by feature after onboarding, via the pipeline (`feature-init` → `discover-acs` reverse-engineer mode → `atdd:atdd` → pipeline generation). `onboard` only inventories and plans.
 
 ## Gap-check mode
 
