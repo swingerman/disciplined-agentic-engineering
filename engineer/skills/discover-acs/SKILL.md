@@ -11,15 +11,23 @@ Separating AC discovery (divergent decisions) from spec formalization (convergen
 
 ## When to use
 
-On a feature with `status: ready` and `autonomy_level` set. Produces `acs.md`.
+On a feature with `autonomy_level` set and `status` of `ready` (greenfield) or `in-progress`/`done` (onboarded existing work). Produces `acs.md`.
 
-**Not for:** a parked feature (`discuss` to promote first); a feature that already has `acs.md` (`feature-edit`); producing Given/When/Then specs (`atdd:atdd`); deciding whether to build the feature (`discuss`).
+**Two modes:**
+- **Greenfield** — `status: ready`, no existing spec. Discover ACs from scratch via the four-pass interview.
+- **Reverse-engineer** — onboarded feature (`in-progress`/`done`) that already has a spec (a Speckit `spec.md`, a design doc, shipped code). Extract candidate ACs from the existing material, then interview only for the gaps it leaves.
+
+**Not for:** a parked feature (`discuss` to promote first); a feature that already has a complete `acs.md` (`feature-edit`); producing Given/When/Then specs (`atdd:atdd`); deciding whether to build the feature (`discuss`).
 
 ## Workflow
 
-1. **Resolve + validate** — find `.engineer/manifest.yml`; locate the feature. Reject if not found, not `ready`, or `acs.md` already exists with content.
-2. **Load** — `feature.md`, `CHARTER.md`, `manifest.yml`, prior `handoffs/`.
-3. **Interview in four passes** — one question per turn; coverage prompts per pass:
+1. **Resolve + validate** — find `.engineer/manifest.yml`; locate the feature. Reject if not found, if `status: parked` (→ `discuss` to promote first), or if `acs.md` already exists with content. Pick the mode: existing spec/code present → reverse-engineer; else → greenfield.
+2. **Load** — `feature.md`, `CHARTER.md`, `manifest.yml`, prior `handoffs/`. Reverse-engineer mode: also load the existing spec / design doc / relevant code.
+3. **Discover the ACs:**
+   - **Greenfield** — interview in four passes, one question per turn, coverage prompts per pass.
+   - **Reverse-engineer** — extract candidate ACs from the existing material, organized by the four passes; then interview only for genuine gaps the material leaves undecided. Gap questions may be **batched** (e.g. one `AskUserQuestion` with up to 4) rather than one-per-turn — the existing material already carries the bulk.
+
+   The four passes:
    - **Happy path** — the core journey, every behavior when all goes right
    - **Edge cases** — empty / extreme / boundary / concurrency / partial state
    - **Errors & security** — missing/malformed input, authorization, external failure, abuse
@@ -32,9 +40,11 @@ On a feature with `status: ready` and `autonomy_level` set. Produces `acs.md`.
 
 Re-invoking on a feature with existing `acs.md` is an edit pass (preserve AC IDs). Big restructures → `feature-edit`.
 
+In reverse-engineer mode, note in the handoff that `acs.md` and the original spec should later be reconciled — a good `consistency-check` target.
+
 ## Handoff
 
-Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: 2`; `human_action_needed: yes` (review); `recommended_next`: "/atdd:atdd to formalize as Given/When/Then specs".
+Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: 2`; `human_action_needed: yes` (review); `recommended_next`: "/atdd:atdd to formalize as Given/When/Then specs" (greenfield), or "/engineer.consistency-check to reconcile acs.md against the existing spec" (reverse-engineer).
 
 ## References
 

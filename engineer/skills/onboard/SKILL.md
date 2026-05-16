@@ -31,7 +31,7 @@ Manifest exists → don't re-onboard. Validate: `CHARTER.md` has all 7 sections;
 
 ## Handoff
 
-Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: 0`; `artifacts`: `CHARTER.md`, `.engineer/manifest.yml`. `recommended_next`: "per feature, /engineer.prime-context then /engineer.discover-acs; new ideas, /engineer.discuss".
+Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. onboard is project-scope — its handoff goes to `.engineer/handoffs/` (no feature folder exists). `checkpoint: 0`; `artifacts`: `CHARTER.md`, `.engineer/manifest.yml`. `recommended_next`: "per feature, /engineer.prime-context then /engineer.discover-acs; new ideas, /engineer.discuss".
 
 ## References
 

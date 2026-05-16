@@ -6,7 +6,8 @@ Every DAE skill ends by emitting a **handoff summary** — the signal that tells
 
 ## Location and naming
 
-`<methodology_root>/features/NNN-<slug>/handoffs/<ISO-timestamp>-<skill>.md`
+- **Feature-scope handoffs** — `<methodology_root>/features/NNN-<slug>/handoffs/<ISO-timestamp>-<skill>.md`
+- **Project-scope handoffs** — `<methodology_root>/.engineer/handoffs/<ISO-timestamp>-<skill>.md` — for skills that run without a feature folder: `onboard` (Checkpoint 0), `consistency-check --project`, and any other project-scope task.
 
 Timestamp is compact ISO 8601 `YYYY-MM-DDTHHMM` (no seconds) — chronologically sortable.
 

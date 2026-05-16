@@ -53,7 +53,7 @@ Before major pipeline transitions and as a CI gate.
 
 ## Handoff
 
-Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: null`; `artifacts: []`. Any errors → `human_action_needed: yes`. `recommended_next`: resolve via `clarify` / `feature-edit` / `plan`, then re-run.
+Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: null`; `artifacts: []`. Feature scope → handoff in that feature's `handoffs/`; `--project` scope → handoff in `.engineer/handoffs/`. Any errors → `human_action_needed: yes`. `recommended_next`: resolve via `clarify` / `feature-edit` / `plan`, then re-run.
 
 ## References
 
