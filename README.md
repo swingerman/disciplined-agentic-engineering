@@ -27,7 +27,7 @@ DAE sharpens these into a single workflow. The full methodology spec lives in [N
 
 | Plugin | Purpose | Status |
 |--------|---------|--------|
-| **[`engineer`](engineer/)** | The DAE methodology kit — feature intake, AC discovery, planning, verification | v0.2 — 12 skills written; infra in progress |
+| **[`engineer`](engineer/)** | The DAE methodology kit — feature intake, AC discovery, planning, verification | v0.2 — 13 skills written; infra in progress |
 | **[`atdd`](./)** | Acceptance Test Driven Development workflow with team orchestration and mutation testing | v0.4 — stable |
 | **[`crap-analyzer`](crap-analyzer/)** | Change Risk Anti-Pattern analysis on changed code; part of DAE's Light Verify (Checkpoint 7) | v0.1 — migrated from `swingerman/skills` |
 
@@ -78,6 +78,7 @@ Skills (v0.2 — full skill set written; infrastructure layers in progress):
 | `feature-edit` | `/engineer.feature-edit` | Intent-driven edits with downstream cascade orchestration |
 | `progress-log` | `/engineer.progress-log` | Propagation engine — handoffs → `progress.md` + tracker sync |
 | `session-summary` | `/engineer.session-summary` | Per-session `session-log.md` entry — pick up cleanly next session |
+| `next` | `/engineer.next` | Session-start advisory — surveys all state, recommends what to pick up next |
 
 Interoperates with the `atdd` plugin: `atdd:atdd` (Checkpoint 3 — Given/When/Then specs), `atdd:atdd-team` (Checkpoint 5 — implementation), `atdd:mutate` (Checkpoint 8 — hardening); and `crap-analyzer` (Checkpoint 7 — Light Verify).
 
@@ -94,11 +95,11 @@ Interoperates with the `atdd` plugin: `atdd:atdd` (Checkpoint 3 — Given/When/T
 9. **`/engineer.simplify`** — charter-bound clean-up (Checkpoint 6)
 10. **`crap-analyzer`** then optional **`atdd:mutate`** — verify + harden (Checkpoints 7–8)
 
-Cross-cutting throughout: `clarify`, `consistency-check`, `feature-edit`, `progress-log`, `session-summary`.
+Cross-cutting throughout: `clarify`, `consistency-check`, `feature-edit`, `progress-log`, `session-summary`, `next`.
 
 Every agentic task ends with a structured handoff summary — the human knows when to re-engage after walking away.
 
-> **Status note:** all 12 skill definitions are written (v0.2). They reference foundation infrastructure — `methodology_root` resolution, tracker drivers, the `spec.md` → IR pipeline — that is still being built out. An end-to-end run is not yet expected to work; this is a design-complete, infrastructure-in-progress release.
+> **Status note:** all 13 skill definitions are written (v0.2). They reference foundation infrastructure — `methodology_root` resolution, tracker drivers, the `spec.md` → IR pipeline — that is still being built out. An end-to-end run is not yet expected to work; this is a design-complete, infrastructure-in-progress release.
 
 ### Methodology references
 
@@ -242,13 +243,14 @@ The plugin's preferred approach is to **build a project-specific mutation tool**
 ├── commands/               # atdd plugin commands
 ├── hooks/                  # atdd plugin hooks
 ├── skills/                 # atdd plugin skills (atdd, atdd-team, atdd-mutate)
-├── engineer/               # engineer plugin (DAE methodology kit — 12 skills)
+├── engineer/               # engineer plugin (DAE methodology kit — 13 skills)
 │   ├── .claude-plugin/
 │   │   └── plugin.json
+│   ├── references/         # shared references (handoff-summary.md)
 │   └── skills/             # onboard, discuss, feature-init, prime-context,
 │                           # discover-acs, plan, simplify, clarify,
 │                           # consistency-check, feature-edit, progress-log,
-│                           # session-summary
+│                           # session-summary, next
 └── crap-analyzer/          # crap-analyzer plugin (CRAP risk analysis)
     ├── .claude-plugin/
     │   └── plugin.json
