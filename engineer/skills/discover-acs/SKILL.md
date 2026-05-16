@@ -21,7 +21,7 @@ On a feature with `autonomy_level` set and `status` of `ready` (greenfield) or `
 
 ## Workflow
 
-1. **Resolve + validate** — find `.engineer/manifest.yml`; locate the feature. Reject if not found, if `status: parked` (→ `discuss` to promote first), or if `acs.md` already exists with content. Pick the mode: existing spec/code present → reverse-engineer; else → greenfield.
+1. **Resolve + validate** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); locate the feature. Reject if not found, if `status: parked` (→ `discuss` to promote first), or if `acs.md` already exists with content. Pick the mode: existing spec/code present → reverse-engineer; else → greenfield.
 2. **Load** — `feature.md`, `CHARTER.md`, `manifest.yml`, prior `handoffs/`. Reverse-engineer mode: also load the existing spec / design doc / relevant code.
 3. **Discover the ACs:**
    - **Greenfield** — interview in four passes, one question per turn, coverage prompts per pass.

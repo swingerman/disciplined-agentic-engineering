@@ -17,7 +17,7 @@ On any one of: `feature.md`, `acs.md`, `spec.md`, `plan.md`, `CHARTER.md`. Invok
 
 ## Workflow
 
-1. **Resolve + load** — find `.engineer/manifest.yml`; locate the target artifact. Also load its parent contract for grounding (`feature.md` for acs/spec/plan; `CHARTER.md` for feature.md).
+1. **Resolve + load** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); locate the target artifact. Also load its parent contract for grounding (`feature.md` for acs/spec/plan; `CHARTER.md` for feature.md).
 2. **Identify ambiguities** — within this one artifact: language interpretable two ways, underspecified requirements, undefined domain terms, unclear scope boundaries, internal contradictions. Cross-*artifact* contradictions are out of scope (→ `consistency-check`). If none found, say so and stop.
 3. **Resolve one at a time** — per ambiguity, quote the ambiguous line and ask one question — multiple-choice (AskUserQuestion) when bounded, open-ended otherwise. Iterate until resolved or the user stops.
 4. **Edit in place** — encode each resolution into the target artifact; show old→new, confirm before writing. Edit **only** the target artifact.

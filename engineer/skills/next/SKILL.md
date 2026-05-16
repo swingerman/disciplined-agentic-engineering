@@ -21,7 +21,7 @@ Start of a session, or any "what now?" moment. Project-scope; surveys the whole 
 
 ### Step 1 — Resolve and survey
 
-Find `.engineer/manifest.yml`; resolve `methodology_root`. Then read, read-only:
+Resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`). Then read, read-only:
 
 - **In-flight features** — every `features/*/feature.md` (status) + `progress.md` (current checkpoint; whether it's blocked or ready to advance)
 - **Consolidation backlog** — `.engineer/consolidation.md` if present (coverage backlog + triage order)

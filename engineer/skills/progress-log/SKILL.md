@@ -18,7 +18,7 @@ When the foundations say "the agentic summary contract handles propagation," thi
 
 ## Workflow
 
-1. **Resolve + scope** — find `.engineer/manifest.yml`; resolve `methodology_root` and tracker config. Scope = one feature (auto / `<slug>`) or all (`--project`).
+1. **Resolve + scope** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); the manifest carries the tracker config. Scope = one feature (auto / `<slug>`) or all (`--project`).
 2. **Read new handoffs** — `handoffs/*.md` not yet reflected in `progress.md` (compare timestamps against the last-synced marker).
 3. **Update `progress.md`** — per handoff: update the Checkpoints table row (if `checkpoint:` set), append to Verification reports (if a verification skill), append to the Handoff log, recompute the Current stage header.
 4. **Recompute tracked state** — derive the `TrackedFeature` record from local truth (`feature.md` + `progress.md`).

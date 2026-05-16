@@ -17,7 +17,7 @@ Any time an existing feature's artifacts must change. `checkpoint: null`.
 
 ## Workflow
 
-1. **Resolve + identify the feature** — find `.engineer/manifest.yml`; locate the feature (slug, branch, or search `feature.md` titles/outcomes).
+1. **Resolve + identify the feature** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); locate the feature (slug, branch, or search `feature.md` titles/outcomes).
 2. **Is this actually an edit?** — if the intent is a new capability or too big for one feature, surface it and redirect to `discuss`. Stop.
 3. **Classify the entry artifact** — the highest-level artifact the intent directly changes: outcome/scope → `feature.md`; a behavior → `acs.md`; a GWT detail → `spec.md`; architecture/phasing → `plan.md`.
 4. **Build the edit plan** — the cascade runs **strictly downstream** (`feature.md → acs.md → spec.md → plan.md`); upstream problems are surfaced, never auto-propagated. Per downstream artifact, classify by blast radius: small/mechanical → feature-edit edits directly; substantial → invoke the owning skill (`discover-acs` / `atdd:atdd` / `plan`) in edit-pass mode.

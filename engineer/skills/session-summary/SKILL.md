@@ -15,7 +15,7 @@ At the end of a work session on a feature. A Stop hook may auto-invoke it; that 
 
 ## Workflow
 
-1. **Resolve + scope** — find `.engineer/manifest.yml`; resolve `methodology_root`. Scope = the feature(s) the session touched (default: current branch; multiple → an entry in each; none → nothing to log, stop).
+1. **Resolve + scope** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`). Scope = the feature(s) the session touched (default: current branch; multiple → an entry in each; none → nothing to log, stop).
 2. **Gather** — synthesize from this session's `handoffs/*.md`, git activity on the branch, and conversation context (decisions, problems, deferrals).
 3. **Append the entry** — append (never overwrite) to `features/NNN-<slug>/session-log.md`:
 

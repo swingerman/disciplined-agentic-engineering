@@ -19,7 +19,7 @@ Checkpoint 6, after `atdd:atdd-team` produces passing code, before `crap-analyze
 
 ## Workflow
 
-1. **Resolve + scope** — find `.engineer/manifest.yml`; locate the feature. Scope = the feature branch's changed code (`git diff` against the branch point). Load `feature.md`, `acs.md`, `spec.md`, `CHARTER.md`.
+1. **Resolve + scope** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); locate the feature. Scope = the feature branch's changed code (`git diff` against the branch point). Load `feature.md`, `acs.md`, `spec.md`, `CHARTER.md`.
 2. **Dispatch three parallel review subagents** (`superpowers:dispatching-parallel-agents`), each over the same changed code:
    - **Reuse** — duplication, reinvented wheels, dead code, missed existing utilities
    - **Quality** — clarity, structure, naming, incidental complexity, maintainability

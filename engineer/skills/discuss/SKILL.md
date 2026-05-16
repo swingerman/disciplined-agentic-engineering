@@ -16,7 +16,7 @@ The upstream funnel of DAE — a divergent brainstorm (forked from `superpowers:
 
 ## Workflow
 
-1. **Resolve + load** — find `.engineer/manifest.yml`; resolve `methodology_root`. Load `CHARTER.md`, `manifest.yml`, and the last ~20 lines of `.engineer/discussions.log`. With a slug arg: also load that feature's `feature.md` + prior `handoffs/*-discuss.md`; reject if its status is `ready`/`in-progress` (→ `feature-edit`) or `done`.
+1. **Resolve + load** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`). Load `CHARTER.md` and the last ~20 lines of `.engineer/discussions.log`. With a slug arg: also load that feature's `feature.md` + prior `handoffs/*-discuss.md`; reject if its status is `ready`/`in-progress` (→ `feature-edit`) or `done`.
 2. **Open** — fresh: "What are you thinking about?" After the first prompt, soft-match the topic against parked feature titles/areas; if a likely match, offer once to continue it. Continue mode: echo prior state in one line, then resume.
 3. **Brainstorm (divergent)** — explore intent, scope, alternatives; one question per turn. Surface charter signals (e.g. payment paths cap autonomy), ADR connections, and "too big — decompose?" flags as they arise.
 4. **Surface the outcome** — at a natural inflection, recommend an outcome (promote / park / drop); the user confirms. Never auto-execute. If the user says "drop" but there's a concrete reason it's worth parking, ask once.

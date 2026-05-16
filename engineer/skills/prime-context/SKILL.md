@@ -15,7 +15,7 @@ A prep step (not a checkpoint) between `feature-init` and `discover-acs`, on any
 
 ## Workflow
 
-1. **Resolve + locate** — find `.engineer/manifest.yml`; resolve `methodology_root`; locate the feature (slug arg or branch name). Reject if no folder / no `feature.md`.
+1. **Resolve + locate** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); locate the feature (slug arg or branch name). Reject if no folder / no `feature.md`.
 2. **Silent batch load** — without narrating: `feature.md`, `CHARTER.md`, `manifest.yml`, prior `handoffs/` (especially the originating `*-discuss.md`), and the files named in `feature.md`'s "Related code / design pointers".
 3. **Orient** — give a concise summary: outcome, scope, autonomy level (+ charter cap), key prior decisions, related code, relevant ADRs.
 4. **One prompt** — ask exactly one question: anything else to load? If the user names a new code pointer, load it and offer to add it to `feature.md`. Then stop — prime-context orients, it does not interview.
