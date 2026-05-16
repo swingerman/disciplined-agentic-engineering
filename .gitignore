@@ -4,3 +4,7 @@
 linkedin-post.html
 social-preview.jpg
 social-preview.png
+
+# Python build artifacts
+__pycache__/
+*.pyc
