@@ -27,7 +27,7 @@ Detect from-discuss vs standalone by whether a `feature_intake` payload is prese
 5. **Allocate number** — scan `features/` for max `NNN`, +1, 3-digit zero-padded. (Parallel runs may race — solo work won't hit it.) **Onboarding intake exception:** inherit the existing number — a feature migrated from a Speckit `specs/NNN-slug/` keeps its `NNN`; do not renumber.
 6. **Create** — `features/NNN-<slug>/` with `feature.md` (per the Foundation Design feature.md schema), empty `handoffs/`, empty `.build/`. Add `.build/` to `.gitignore`. Do NOT create `progress.md`/`acs.md`/`spec.md`/`plan.md`/`session-log.md` — downstream skills produce those.
 7. **Branch** — auto-create `git checkout -b <slug>` unless `CHARTER.md` declares a manual git policy. **If the branch already exists** (common in onboarding intake — the feature's work is already on a branch) → use it, don't recreate.
-8. **Tracker** — upsert a `TrackedFeature` via the driver (`local` mode = no-op); write the returned ref to `feature.md` `tracker_ref`.
+8. **Tracker** — upsert a `TrackedFeature` via the driver per `references/tracker.md` (`local` = the `dae_tracker_local.py` no-op; `notion` = the connected Notion MCP); write the returned ref to `feature.md` `tracker_ref`.
 9. **Handoff** — emit a summary.
 
 ## Handoff
@@ -40,4 +40,4 @@ If folder + `feature.md` succeed but branch or tracker fails, emit `status: inte
 
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — feature.md schema, storage layout, naming
 - [Discuss & Upstream Funnel](https://www.notion.so/35a5ecdee0e281eaa35fced0c4e23384) — the `feature_intake` contract from discuss
-- [Tracker Integration](https://www.notion.so/35a5ecdee0e28168b1aee324c267fd13) — driver interface
+- `references/tracker.md` — the tracker drivers (local + Notion)

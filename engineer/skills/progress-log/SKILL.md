@@ -22,8 +22,8 @@ When the foundations say "the agentic summary contract handles propagation," thi
 2. **Read new handoffs** — `handoffs/*.md` not yet reflected in `progress.md` (compare timestamps against the last-synced marker).
 3. **Update `progress.md`** — per handoff: update the Checkpoints table row (if `checkpoint:` set), append to Verification reports (if a verification skill), append to the Handoff log, recompute the Current stage header.
 4. **Recompute tracked state** — derive the `TrackedFeature` record from local truth (`feature.md` + `progress.md`).
-5. **Sync the tracker** — driver `upsert(TrackedFeature)`: local-wins on DAE-managed fields, tracker-managed fields (comments, labels) preserved. `local` mode = no-op. Write the result to `progress.md`'s "Tracker sync" line.
-6. **(`--project` only) Drift report** — driver `reconcile()`; surface anything unexpected (orphan tracker entry, untracked local feature).
+5. **Sync the tracker** — driver `upsert(TrackedFeature)` per `references/tracker.md`: local-wins on DAE-managed fields, tracker-managed fields (comments, labels) preserved. `local` = no-op (the feature files are the tracker). Write the result to `progress.md`'s "Tracker sync" line.
+6. **(`--project` only) Drift report** — driver `reconcile()` per `references/tracker.md`; surface anything unexpected (orphan tracker entry, untracked local feature).
 
 ## Handoff exemption
 
@@ -32,4 +32,5 @@ When the foundations say "the agentic summary contract handles propagation," thi
 ## References
 
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — `progress.md` schema, agentic summary contract + this exemption (Section 5)
-- [Tracker Integration](https://www.notion.so/35a5ecdee0e28168b1aee324c267fd13) — driver interface, `TrackedFeature`, sync triggers, reconciliation
+- `references/tracker.md` — the tracker drivers, `TrackedFeature`, local-wins reconciliation
+- [Tracker Integration](https://www.notion.so/35a5ecdee0e28168b1aee324c267fd13) — sync triggers, the column schema
