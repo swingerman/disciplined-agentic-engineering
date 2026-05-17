@@ -2,7 +2,7 @@
 
 Detailed prompt templates for each phase of the team-based ATDD workflow.
 Adapt placeholders (`[feature description]`, `[feature-name]`,
-`[project test command]`) to the specific project.
+`[NNN-slug]`, `[project test command]`) to the specific project.
 
 ---
 
@@ -57,28 +57,26 @@ Follow the ATDD workflow from the atdd plugin. Your job:
 
 1. Read the existing codebase to understand the domain language
    (how does the app refer to users, orders, sessions, etc.?)
-2. Write Given/When/Then specs in specs/[feature-name].txt
+2. Write the feature's spec.md in standard Gherkin under
+   features/[NNN-slug]/
 3. Use ONLY external observables — no class names, no API endpoints,
    no database tables, no framework terms
-4. Each spec file starts with a semicolon comment block describing
-   the behavior
-5. Use periods at the end of each statement
-6. Send me the specs for review before proceeding
+4. Name each behavior with a Scenario: line; use Scenario Outline:
+   + Examples: for behaviors with varying data
+5. Send me the specs for review before proceeding
 
 CRITICAL: If you're unsure whether a term is domain language or
 implementation language, ask me. Do NOT guess.
 
 Example of what I expect:
 
-;===============================================================
-; User can register with email and password.
-;===============================================================
-GIVEN no registered users.
+Feature: User Registration
 
-WHEN a user registers with email "bob@example.com" and password "secret123".
-
-THEN there is 1 registered user.
-THEN the user "bob@example.com" can log in.
+Scenario: User can register with email and password
+  Given no registered users
+  When a user registers with email "bob@example.com" and password "secret123"
+  Then there is 1 registered user
+  And the user "bob@example.com" can log in
 ```
 
 ### Revision prompt (if specs need changes after review)
@@ -86,7 +84,7 @@ THEN the user "bob@example.com" can log in.
 Send to **spec-writer**:
 
 ```
-The reviewer found issues with specs/[feature-name].txt.
+The reviewer found issues with features/[NNN-slug]/spec.md.
 
 Issues found:
 [paste reviewer's findings]
@@ -106,7 +104,7 @@ Send me the revised specs for re-review.
 Send to **reviewer**:
 
 ```
-Review the specs in specs/[feature-name].txt for implementation leakage.
+Review features/[NNN-slug]/spec.md for implementation leakage.
 
 Flag ANY of these:
 - Class names, function names, method names
@@ -121,7 +119,7 @@ domain language only.
 
 Also check:
 - Is each spec testing ONE behavior?
-- Are the GIVEN/WHEN/THEN statements clear to a non-developer?
+- Are the Given/When/Then steps clear to a non-developer?
 - Could these specs work for a different implementation language?
 
 Send me your review with a PASS/FAIL verdict.
@@ -137,13 +135,14 @@ Run as team lead, or send to **implementer**:
 Generate the test pipeline for this project. Analyze:
 - Language and test framework in use
 - Project structure and existing test patterns
-- The specs in specs/[feature-name].txt
+- The feature's spec.md in features/[NNN-slug]/
 
-Create the 3-stage pipeline:
-1. Parser — reads specs/*.txt, outputs IR to acceptance-pipeline/ir/
-2. Generator — reads IR, produces runnable tests in
-   generated-acceptance-tests/
-3. Runner script — run-acceptance-tests.sh
+The parser (dae_gherkin.py) is portable and shipped — do NOT build it.
+Generate the project-specific half:
+1. Generator — reads .build/spec.json (the IR), produces runnable
+   tests in .build/generated/
+2. Step handlers — bind each step's text to the system's internals
+3. Runner script — run-acceptance-tests.sh (parse → generate → run)
 
 The generator must have DEEP knowledge of the codebase internals.
 This is NOT Cucumber. Generated tests should call directly into the
@@ -159,7 +158,7 @@ Report which tests fail and confirm the pipeline is working.
 ### Pipeline update prompt (when specs changed after initial generation)
 
 ```
-The specs in specs/[feature-name].txt have been updated.
+The feature's spec.md in features/[NNN-slug]/ has been updated.
 Re-run the pipeline to regenerate tests:
 
 1. Re-parse the updated specs
@@ -177,7 +176,7 @@ Do NOT modify the spec files. Only regenerate from them.
 Send to **implementer**:
 
 ```
-The acceptance specs are in specs/[feature-name].txt.
+The acceptance specs are in features/[NNN-slug]/spec.md.
 The test pipeline is set up — run ./run-acceptance-tests.sh to execute.
 
 Implement the feature using TDD:
@@ -192,7 +191,7 @@ Implement the feature using TDD:
 8. Continue until ALL acceptance tests AND unit tests pass
 
 RULES:
-- Never modify spec files (specs/*.txt) — they are the contract
+- Never modify spec.md — it is the contract
 - Never modify generated test files — only regenerate via the pipeline
 - If a spec seems wrong or ambiguous, STOP and ask me
 - Run both test streams before reporting done:
@@ -230,7 +229,7 @@ Send to **reviewer**:
 ```
 Implementation is complete. Do two reviews:
 
-1. SPEC REVIEW: Run /atdd:spec-check on specs/[feature-name].txt
+1. SPEC REVIEW: Run /atdd:spec-check on features/[NNN-slug]/spec.md
    Check if any implementation details leaked into specs during
    development. Propose cleanups if found.
 
@@ -270,7 +269,7 @@ For missing specs → send to spec-writer, then repeat from Phase 2
 ATDD team workflow complete for [feature description].
 
 Results:
-- Specs: specs/[feature-name].txt (reviewed, no leakage)
+- Specs: features/[NNN-slug]/spec.md (reviewed, no leakage)
 - Acceptance tests: ALL PASSING
 - Unit tests: ALL PASSING
 - Code review: CLEAN

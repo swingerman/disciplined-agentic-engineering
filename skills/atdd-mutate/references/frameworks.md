@@ -97,8 +97,8 @@ export default {
     'src/**/*.ts',
     '!src/**/*.spec.ts',
     '!src/**/*.test.ts',
-    '!generated-acceptance-tests/**',
-    '!acceptance-pipeline/**'
+    '!**/.build/**',
+    '!acceptance/**'
   ],
   testRunner: 'jest',        // or 'mocha', 'karma', 'vitest'
   reporters: ['html', 'clear-text', 'progress'],
@@ -433,8 +433,8 @@ lein with-profile +pitest pitest
 
 Always exclude from mutation:
 
-- `generated-acceptance-tests/` — generated pipeline output
-- `acceptance-pipeline/` — parser/generator code
+- `.build/` — generated tests and IR (pipeline output)
+- `acceptance/` — the project-specific generator and step handlers
 - Test files themselves
 - Configuration files
 - Migration files

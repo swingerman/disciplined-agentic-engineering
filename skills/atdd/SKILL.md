@@ -8,7 +8,7 @@ description: >-
   triggered by the /atdd command. Enforces the Acceptance Test Driven
   Development workflow: write Given/When/Then specs before code, generate
   a project-specific test pipeline, and maintain two test streams.
-version: 0.4.0
+version: 0.5.0
 ---
 
 # Acceptance Test Driven Development
@@ -43,27 +43,38 @@ Before writing anything, understand what is being built:
 
 ### Step 2: Write GWT Acceptance Specs
 
-Create spec files in the project's `specs/` directory using this format:
+Write the feature's `spec.md` in **standard Gherkin** (DAE Foundation §7):
 
+```gherkin
+Feature: <feature name>
+
+Scenario: <behavior being specified>
+  Given <precondition in domain language>
+  And <another precondition if needed>
+  When <the action the user/system takes>
+  Then <observable outcome>
+  And <another observable outcome if needed>
+
+Scenario Outline: <a behavior with varying data>
+  Given <a step with a <parameter>>
+  ...
+
+  Examples:
+    | parameter | expected |
+    | value     | result   |
 ```
-;===============================================================
-; Description of the behavior being specified.
-;===============================================================
-GIVEN [precondition in domain language].
-GIVEN [another precondition if needed].
 
-WHEN [action the user/system takes].
+`spec.md` is markdown — prose and headings around the Gherkin are fine;
+the parser ignores non-Gherkin lines.
 
-THEN [observable outcome].
-THEN [another observable outcome if needed].
-```
+> **Migrating from the legacy `;=== .txt` format?** Run the converter:
+> `dae_gherkin_convert.py specs/feature.txt features/NNN-slug/spec.md`.
+> The `.txt` format is deprecated; new specs are Gherkin `spec.md`.
 
 **Format rules:**
-- Semicolon comments with `===` separators delimit test cases
-- GIVEN sets up preconditions (state before the action)
-- WHEN describes the action (one action per test, ideally)
-- THEN describes observable outcomes (external behavior only)
-- Use periods at the end of each statement
+- `Scenario:` names one behavior; `Scenario Outline:` + `Examples:` for varying data
+- `Given` sets preconditions; `When` the action (one per scenario, ideally); `Then` the observable outcome
+- `And` continues the previous keyword
 - Use natural domain language, never implementation language
 
 **The spec-leakage rule — CRITICAL:**
@@ -77,14 +88,14 @@ Specs must describe **external observables only**. Never reference:
 - File paths or module names
 
 ```
-BAD:  GIVEN the UserService has an empty userRepository.
-GOOD: GIVEN there are no registered users.
+BAD:  Given the UserService has an empty userRepository
+GOOD: Given there are no registered users
 
-BAD:  WHEN a POST request is sent to /api/users.
-GOOD: WHEN a new user registers with email "bob@example.com".
+BAD:  When a POST request is sent to /api/users
+GOOD: When a new user registers with email "bob@example.com"
 
-BAD:  THEN the database contains 1 row in the users table.
-GOOD: THEN there is 1 registered user.
+BAD:  Then the database contains 1 row in the users table
+GOOD: Then there is 1 registered user
 ```
 
 **Present specs to the user for approval before proceeding.**
@@ -92,22 +103,24 @@ Specs are co-authored, but the human has final approval — ferociously defended
 
 ### Step 3: Generate the Test Pipeline
 
-Invoke the `pipeline-builder` agent to analyze the project and generate
-(or update) the three-stage pipeline:
+The pipeline's front end is portable and shipped — you don't generate it:
 
-1. **Parser** — reads `.txt` spec files from `specs/`, produces structured IR
-2. **IR format** — intermediate representation (JSON, YAML, or native format
-   depending on the project's language/ecosystem)
-3. **Generator** — reads IR, produces executable test files for the project's
-   test framework (pytest, Jest, JUnit, Go testing, RSpec, etc.)
+1. **Parser** — `dae_gherkin.py` parses `spec.md` → `.build/spec.json`, the
+   fixed JSON IR (see the engineer plugin's `references/spec-ir.md`).
 
-The pipeline must have **deep knowledge of the system internals**.
-This is NOT Cucumber. The generator produces complete, runnable tests
-that call into the system's internals — not stubs requiring manual fixtures.
+Invoke the `pipeline-builder` agent to generate the **project-specific** half:
 
-A runner script/command should be generated so the user can run:
+2. **Generator** — reads `.build/spec.json`, produces executable test files
+   for the project's framework (pytest, Jest, JUnit, Go testing, RSpec, etc.)
+3. **Step handlers** — bind each step's exact text to system internals.
+
+The generator must have **deep knowledge of the system internals**.
+This is NOT Cucumber — it produces complete, runnable tests that call
+into the system, not stubs requiring manual fixtures.
+
+`pipeline-builder` also generates a runner so the user can run:
 ```
-# Full pipeline: parse specs → generate tests → run tests
+# parse spec.md → IR → generate tests → run tests
 ./run-acceptance-tests.sh
 ```
 
@@ -152,31 +165,28 @@ These rules govern how spec files and the pipeline are handled.
 They are non-negotiable.
 
 ### Spec file discipline
-- **Never modify a spec `.txt` file without explicit user permission.**
+- **Never modify a `spec.md` without explicit user permission.**
   Specs are the user's contract. Always ask before changing them.
-- If a directive in a spec is ambiguous, **report the ambiguity rather
-  than guessing**. Let the user clarify.
+- If a step is ambiguous, **report the ambiguity rather than guessing**.
+  Let the user clarify.
 
 ### Pipeline discipline
-- **Never modify generated test files** in `generated-acceptance-tests/`.
-  Only delete and regenerate them by running the pipeline from the `.txt`
-  source.
-- **Generated files are gitignored.** Add `generated-acceptance-tests/`
-  and `acceptance-pipeline/ir/` to `.gitignore`. Never commit generated
-  artifacts.
-- Before running the pipeline, **check modification dates**: if a `.txt`
-  spec file is newer than its IR or generated test, re-parse and
+- **Never modify generated test files** in `.build/generated/`.
+  Only delete and regenerate them by re-running the pipeline from `spec.md`.
+- **`.build/` is gitignored** — the IR and generated tests are artifacts.
+  The project-specific generator and step handlers ARE committed source.
+- Before running the pipeline, **check modification dates**: if `spec.md`
+  is newer than `.build/spec.json` or the generated tests, re-parse and
   regenerate before running.
 - **Clear state before each test.** Generated tests must reset all
-  application state before each test case to ensure isolation.
+  application state before each scenario execution to ensure isolation.
 
 ### Failure handling
-- On test failure, **report the source spec file name and line number**
-  of the first GIVEN line for the failing test. Traceability back to
-  the spec is critical.
-- If a spec cannot be translated into a test, **still generate it as a
+- On test failure, **report the source `spec.md` and the failing
+  scenario name**. Traceability back to the spec is critical.
+- If a scenario cannot be translated into a test, **still generate it as a
   failing test** that documents the desired behavior. Report to the user
-  which spec and why it could not be fully translated.
+  which scenario and why it could not be fully translated.
 - Mock non-deterministic behavior (random numbers, timestamps, etc.) in
   generated tests to ensure reproducibility.
 
@@ -204,38 +214,40 @@ leave internal structure unchecked. Unit tests alone miss integration.
 
 ## File Organization
 
+DAE stores specs and pipeline artifacts per feature folder:
+
 ```
 project-root/
-├── specs/                       # Acceptance test specs (.txt files)
-│   ├── authentication.txt       #   — committed to git
-│   ├── shopping-cart.txt        #   — committed to git
-│   └── ...
-├── acceptance-pipeline/         # Pipeline code (parser + generator)
-│   ├── parser.*                 #   — committed to git
-│   ├── generator.*              #   — committed to git
-│   └── ir/                      #   — GITIGNORED (generated)
-├── generated-acceptance-tests/  # Executable test files
-│   └── ...                      #   — GITIGNORED (generated)
-└── run-acceptance-tests.sh      # Pipeline runner — committed to git
+├── features/
+│   └── NNN-slug/
+│       ├── spec.md              # acceptance specs (standard Gherkin) — committed
+│       └── .build/              # GITIGNORED (regenerated)
+│           ├── spec.json        #   — the IR (from dae_gherkin.py)
+│           └── generated/       #   — the generated acceptance tests
+├── acceptance/                  # project-specific pipeline — committed
+│   ├── generator.*              #   — emits tests from the IR
+│   └── handlers.*               #   — step handlers bound to system internals
+└── run-acceptance-tests.sh      # pipeline runner — committed
 ```
 
 ### What to commit vs. gitignore
 
 **Commit these (source of truth):**
-- `specs/*.txt` — the acceptance test specs
-- `acceptance-pipeline/parser.*` — the parser code
-- `acceptance-pipeline/generator.*` — the generator code
+- `features/NNN-slug/spec.md` — the acceptance specs
+- `acceptance/generator.*` — the project-specific generator
+- `acceptance/handlers.*` — the step handlers
 - `run-acceptance-tests.sh` — the pipeline runner script
 
-**Gitignore these (regenerated from source):**
-- `acceptance-pipeline/ir/` — intermediate representations
-- `generated-acceptance-tests/` — generated test files
+**Gitignore these (regenerated from `spec.md`):**
+- `features/*/.build/` — the IR and generated tests
 
 Add to the project's `.gitignore`:
 ```
-acceptance-pipeline/ir/
-generated-acceptance-tests/
+.build/
 ```
+
+The parser (`dae_gherkin.py`) is portable and shipped with the plugin —
+it is not part of the project's committed source.
 
 ### Project CLAUDE.md integration
 
@@ -246,27 +258,28 @@ ensures Claude Code understands the ATDD setup in every session:
 ```markdown
 ## Acceptance Tests
 
-Acceptance tests are `.txt` files in `specs/` in Given/When/Then format.
+Acceptance specs are `spec.md` files (standard Gherkin) under
+`features/NNN-slug/`.
 
 ### Pipeline
 
 ```
-.txt → Parser → IR → Generator → executable tests
+spec.md → dae_gherkin.py → .build/spec.json (IR) → generator → tests
 ```
 
-1. **Parse:** [parse command] — reads `specs/*.txt`, produces IR in `acceptance-pipeline/ir/`
-2. **Generate:** [generate command] — reads IR, produces test files in `generated-acceptance-tests/`
+1. **Parse:** `dae_gherkin.py` — `spec.md` → `.build/spec.json` (portable, shipped)
+2. **Generate:** [generate command] — reads the IR, produces tests in `.build/generated/`
 3. **Run:** [test command] — executes the generated tests
 
 Full pipeline: `./run-acceptance-tests.sh`
 
 ### Rules
 
-- Never modify a spec `.txt` file without explicit permission.
+- Never modify a `spec.md` without explicit permission.
 - Never modify generated tests — only delete and regenerate via the pipeline.
-- Generated tests and IR files are gitignored — do not commit them.
+- `.build/` is gitignored — do not commit the IR or generated tests.
 - Before a push, run the full acceptance test pipeline.
-- On failure, report the spec file name and line number.
+- On failure, report the `spec.md` and the failing scenario name.
 ```
 
 Adapt the commands and paths to match the project's language and

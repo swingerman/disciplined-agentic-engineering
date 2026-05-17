@@ -12,7 +12,7 @@ description: >-
   spec writing, spec review, pipeline generation, implementation, and
   post-implementation review. Supports extending an existing team with
   ATDD roles without replacing current teammates.
-version: 0.4.0
+version: 0.5.0
 ---
 
 # Team-Based ATDD Workflow
@@ -61,10 +61,9 @@ proceeding to the next phase.
 Send the feature description and instruct the spec-writer to:
 
 1. Read the existing codebase to understand domain language
-2. Write Given/When/Then specs in `specs/[feature-name].txt`
+2. Write the feature's `spec.md` in standard Gherkin
 3. Use ONLY external observables — no implementation language
-4. Follow the GWT format from the atdd skill (semicolon comments,
-   periods at end of statements)
+4. Follow the standard Gherkin format from the atdd skill
 5. Send specs back for review before proceeding
 
 **Gate:** Team lead reviews and approves specs. Do not proceed until approved.
@@ -97,8 +96,8 @@ For the detailed prompt template, see `references/prompts.md` — Phase 2.
 
 Generate or update the 3-stage test pipeline:
 
-1. Parser — reads `specs/*.txt`, outputs IR
-2. Generator — reads IR, produces runnable tests
+1. Parser — `dae_gherkin.py` parses `spec.md` → IR (portable, shipped)
+2. Generator — reads the IR, produces runnable tests
 3. Runner — `run-acceptance-tests.sh`
 
 Run acceptance tests after generation. They **must fail** (red). If they pass,

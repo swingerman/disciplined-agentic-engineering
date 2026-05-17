@@ -168,27 +168,30 @@ The generated pipeline is NOT like Cucumber. It's "a strange hybrid of Cucumber 
 
 ### GWT spec format
 
-Specs use an opinionated, human-readable Given/When/Then format:
+As of v0.5, specs are **standard Gherkin** in `spec.md` (the DAE methodology's
+acceptance-pipeline format — Foundation §7):
 
+```gherkin
+Feature: User registration
+
+Scenario: User can register with email and password
+  Given no registered users
+  When a user registers with email "bob@example.com" and password "secret123"
+  Then there is 1 registered user
+  And the user "bob@example.com" can log in
 ```
-;===============================================================
-; User can register with email and password.
-;===============================================================
-GIVEN no registered users.
 
-WHEN a user registers with email "bob@example.com" and password "secret123".
-
-THEN there is 1 registered user.
-THEN the user "bob@example.com" can log in.
-```
+> **Migrating from the legacy `;=== .txt` format?** Run
+> `dae_gherkin_convert.py specs/feature.txt features/NNN-slug/spec.md` (in the
+> `engineer` plugin's `scripts/`). The `.txt` format is deprecated.
 
 **The Golden Rule:** specs describe what the system does, not how it does it.
 
 | Bad (implementation leakage) | Good (domain language) |
 |------------------------------|----------------------|
-| `GIVEN the UserService has an empty userRepository.` | `GIVEN there are no registered users.` |
-| `WHEN a POST request is sent to /api/users with JSON body.` | `WHEN a new user registers with email "bob@example.com".` |
-| `THEN the database contains 1 row in the users table.` | `THEN there is 1 registered user.` |
+| `Given the UserService has an empty userRepository` | `Given there are no registered users` |
+| `When a POST request is sent to /api/users with JSON body` | `When a new user registers with email "bob@example.com"` |
+| `Then the database contains 1 row in the users table` | `Then there is 1 registered user` |
 
 ### Team-based ATDD
 

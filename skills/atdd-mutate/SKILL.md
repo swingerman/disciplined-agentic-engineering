@@ -9,7 +9,7 @@ description: >-
   or mutant survival in the context of testing. It adds a third validation
   layer to the ATDD workflow: after acceptance tests verify WHAT and unit
   tests verify HOW, mutation testing verifies that tests actually catch bugs.
-version: 0.4.0
+version: 0.5.0
 ---
 
 # Mutation Testing
@@ -123,7 +123,7 @@ If no mutation tool is configured:
    architecture (mutations, runner, core). Use TDD to build the tool itself.
 3. **Alternative:** Install an existing framework if rapid setup is needed
 4. Configure to target source directories and exclude test/spec/generated files
-5. Exclude `generated-acceptance-tests/` and `acceptance-pipeline/` from mutation
+5. Exclude `.build/` (generated tests and IR) and the `acceptance/` pipeline code from mutation
 
 **Important:** Configure mutation testing to target **source code only**.
 Never mutate test files, spec files, or generated pipeline code.

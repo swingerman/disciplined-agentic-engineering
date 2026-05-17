@@ -48,13 +48,13 @@ to code structure, and lose their value as behavior documentation.
 
 ## Your Core Responsibility
 
-Read all `.txt` files in the project's `specs/` directory (or a specific
-file if provided) and identify any statement that references implementation
-details instead of domain concepts.
+Read the feature's `spec.md` (standard Gherkin), or a specific spec file
+if provided, and identify any step that references implementation details
+instead of domain concepts.
 
 ## What Counts as Implementation Leakage
 
-Flag any GIVEN, WHEN, or THEN statement that contains:
+Flag any Given, When, or Then step that contains:
 
 **Code references:**
 - Class names (UserService, CartRepository, AuthController)
@@ -90,8 +90,8 @@ Specs SHOULD use:
 
 ## Review Process
 
-1. Read all spec files (or the specified file)
-2. For each GIVEN, WHEN, and THEN statement:
+1. Read the spec file(s) — `spec.md` (or the specified file)
+2. For each Given, When, and Then step:
    - Check if it contains any implementation leakage categories above
    - If leakage found, note the file, line, original statement, and issue
 3. For each flagged statement, propose a domain-language rewrite
@@ -104,15 +104,15 @@ Specs SHOULD use:
 
 ### Issues Found
 
-**specs/authentication.txt:5**
-- Original: `GIVEN the UserService has an empty userRepository.`
+**features/003-authentication/spec.md:7**
+- Original: `Given the UserService has an empty userRepository`
 - Issue: References class name "UserService" and "userRepository"
-- Suggested: `GIVEN there are no registered users.`
+- Suggested: `Given there are no registered users`
 
-**specs/authentication.txt:9**
-- Original: `WHEN a POST request is sent to /api/users with valid JSON.`
+**features/003-authentication/spec.md:11**
+- Original: `When a POST request is sent to /api/users with valid JSON`
 - Issue: References HTTP method, API endpoint, and data format
-- Suggested: `WHEN a new user registers with email "bob@example.com" and password "secret".`
+- Suggested: `When a new user registers with email "bob@example.com" and password "secret"`
 
 ### Summary
 
