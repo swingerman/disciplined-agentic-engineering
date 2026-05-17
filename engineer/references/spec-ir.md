@@ -73,7 +73,7 @@ examples runs once; one with examples runs once per row.
 ## Downstream
 
 - **Generator** (project-specific, via `atdd`'s pipeline-builder) — IR → executable acceptance tests
-- **Mutator** (`atdd:mutate`) — alters example values in the IR, regenerates, expects failure
+- **IR mutator** (`dae_gherkin_mutate.py`) — alters example values in the IR, one cell per mutation; the project regenerates tests from each mutated IR and expects them to fail. Checks the acceptance tests are *wired to the app*. **Distinct from `atdd:mutate`**, which mutates *source code* to check the unit suite (Checkpoint 8 Hardening) — different mutator, different purpose.
 
 ## References
 
