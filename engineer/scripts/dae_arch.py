@@ -271,6 +271,9 @@ def audit(start_dir, full):
 
 def main(argv):
     args = list(argv)
+    if args and args[0] in ("-h", "--help"):
+        print(__doc__)
+        return 0
     fmt = "text"
     if "--format" in args:
         i = args.index("--format")
