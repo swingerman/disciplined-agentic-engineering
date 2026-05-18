@@ -7,101 +7,119 @@ description: >-
   agents for feature development", "run the ATDD workflow with teammates",
   "add ATDD to my team", "extend my team with ATDD", "join the team with
   ATDD agents", "add spec-writer and reviewer to the team", or "add ATDD
-  roles to the existing team". It orchestrates a three-agent team
-  (spec-writer, implementer, reviewer) through a five-phase ATDD workflow:
-  spec writing, spec review, pipeline generation, implementation, and
-  post-implementation review. Supports extending an existing team with
-  ATDD roles without replacing current teammates.
+  roles to the existing team". It orchestrates a six-phase ATDD workflow —
+  spec writing, spec review, pipeline generation, implementation, refine,
+  verify & harden — spawning a fresh agent per phase so no agent erodes
+  across a long-running feature.
 version: 0.5.0
 ---
 
 # Team-Based ATDD Workflow
 
 Orchestrate an agent team that follows the Acceptance Test Driven Development
-workflow. The team lead coordinates specialist agents through five phases:
-spec writing, spec review, pipeline generation, implementation, and
-post-implementation review.
+workflow. The team lead coordinates specialist agents through six phases. Each
+phase is run by a **fresh agent invocation** — no agent persists across phases.
+
+## Why fresh per phase
+
+A long-lived agent's context compacts as a feature runs for hours. Compaction
+silently erodes role identity and discipline: agents lose their role, invent
+constraints that do not exist, and skip expensive-but-required steps. A fresh
+per-phase agent reloads its instructions clean — the same insight as the
+engineer plugin's per-skill model. The "team" exists for **parallelism** across
+features, not for keeping agents alive within one feature.
 
 ## Team Detection
 
-Before creating a team, check for existing teams:
+Before spawning phase agents, check for existing teams:
 
-1. Read `~/.claude/teams/` to list active teams
+1. Read `~/.claude/teams/` to list active teams.
 2. If a team exists, present the user with a choice:
-   - **Extend** — Add ATDD roles (spec-writer, implementer, reviewer) to the
-     existing team. Skip roles that already exist by name.
-   - **Replace** — Shut down the existing team and create a fresh ATDD team.
-   - **New team** — Create a separate ATDD team alongside the existing one.
+   - **Extend** — run the ATDD phases for this feature alongside the existing team.
+   - **Replace** — shut down the existing team and run ATDD fresh.
+   - **New team** — run the ATDD pipeline as a separate team.
 
-If no team exists, proceed directly to team creation.
+If no team exists, proceed directly.
 
 ## Roles
 
-Create three teammates with these roles:
+Each phase is run by a fresh agent invocation scoped to that phase, then ended.
 
-| Name | Agent Type | Purpose |
-|------|-----------|---------|
-| `spec-writer` | `general-purpose` | Writes Given/When/Then acceptance specs in domain language. Follows the atdd skill strictly. |
-| `implementer` | `general-purpose` | Implements features using TDD. Unit tests first, then code, until both test streams pass. |
-| `reviewer` | `general-purpose` | Reviews specs for implementation leakage. Reviews code for quality. Has the atdd plugin installed. Runs /atdd:spec-check. |
+| Role | Maps to | Owns phase |
+|------|---------|-----------|
+| `spec-writer` | discuss, discover-acs, atdd spec step | 1 Spec Writing |
+| `reviewer` | spec-guardian agent | 2 Spec Review |
+| `implementer` | atdd impl, pipeline-builder | 3 Pipeline Gen, 4 Implementation |
+| `refiner` | the engineer plugin's `refine` skill | 5 Refine |
+| `architect` | consistency-check, crap-analyzer, atdd-mutate | 6 Verify & Harden |
 
-The **team lead** (the orchestrating agent or user) owns the workflow, reviews
-specs, approves all work, and enforces discipline. The team lead never delegates
-approval — specs are the team lead's contract.
+The **team lead** (the orchestrating agent or user) owns the workflow, approves
+all work, enforces discipline, and verifies the `agent_id` independence binding.
+The team lead never delegates approval — specs are the team lead's contract.
+
+## Coordination rules
+
+- **Durable handoffs, not chat.** Each phase ends by writing a handoff summary
+  to `features/NNN-slug/handoffs/` (the engineer plugin's handoff contract, with
+  the `exit_criteria` block). The next phase's fresh agent reads the prior
+  handoff for context — coordination survives a context compaction.
+- **Phase gate = checkpoint exit criteria.** A phase is done only when its
+  handoff asserts every exit criterion met (Foundation Design Section 8). Before
+  starting a phase, verify the prior checkpoint is complete — run the engineer
+  plugin's `scripts/dae_handoff.py <feature-dir> --through <prior-cp>`.
+- **`agent_id` independence (Principle 7).** Each phase handoff records its
+  `agent_id`. The `architect`'s `agent_id` MUST differ from both the
+  `implementer`'s and the `refiner`'s — the verifier verifies neither its own
+  code nor its own refinement. The team lead checks this.
+- **Role boundary.** The `implementer` takes the code to green only — it does
+  NOT do deep refactoring; that is the `refiner`'s phase. Every phase handoff
+  states explicitly what was NOT done and what is left for the next role.
+- **Per-phase anchor.** Each phase agent's spawn prompt embeds a `reorient`-style
+  anchor: role, autonomy level, the prior handoff, the phase's exit criteria,
+  and the non-negotiables. See `references/prompts.md`.
 
 ## Workflow Phases
 
-Execute phases strictly in order. Each phase has a gate that must pass before
-proceeding to the next phase.
+Execute phases strictly in order. Each phase spawns a fresh agent, ends with a
+durable handoff, and is gated on the prior checkpoint's exit criteria.
 
 ### Phase 1 — Spec Writing
 
-**Assign to:** `spec-writer`
+**Assign to:** a fresh `spec-writer` agent.
 
-Send the feature description and instruct the spec-writer to:
-
+Instruct it to:
 1. Read the existing codebase to understand domain language
 2. Write the feature's `spec.md` in standard Gherkin
 3. Use ONLY external observables — no implementation language
 4. Follow the standard Gherkin format from the atdd skill
-5. Send specs back for review before proceeding
+5. End with a handoff summary
 
-**Gate:** Team lead reviews and approves specs. Do not proceed until approved.
+**Gate:** Team lead reviews and approves the specs (Checkpoint 3 exit criteria).
+Do not proceed until approved.
 
 For the detailed prompt template, see `references/prompts.md` — Phase 1.
 
 ### Phase 2 — Spec Review
 
-**Assign to:** `reviewer`
+**Assign to:** a fresh `reviewer` agent.
 
-Instruct the reviewer to audit specs for implementation leakage:
+Run the spec-guardian agent to audit `spec.md` for implementation leakage:
+class/function names, database tables, API endpoints, framework terms, internal
+state. Also verify one behavior per scenario and clarity for non-developers.
 
-- Class names, function names, method names
-- Database tables, columns, queries
-- API endpoints, HTTP methods, status codes
-- Framework terms (controller, service, repository)
-- Internal state or data structures
-
-Also verify: one behavior per spec, clarity for non-developers,
-language portability.
-
-**Gate:** Reviewer sends findings. Team lead decides whether specs need
-revision. If revisions needed, return to Phase 1.
+**Gate:** The reviewer's handoff reports findings. The team lead decides whether
+the spec needs revision. If revisions are needed, return to Phase 1.
 
 For the detailed prompt template, see `references/prompts.md` — Phase 2.
 
 ### Phase 3 — Pipeline Generation
 
-**Assign to:** Team lead (self) or `implementer`
+**Assign to:** a fresh `implementer` agent (or the team lead).
 
-Generate or update the 3-stage test pipeline:
-
-1. Parser — `dae_gherkin.py` parses `spec.md` → IR (portable, shipped)
-2. Generator — reads the IR, produces runnable tests
-3. Runner — `run-acceptance-tests.sh`
-
-Run acceptance tests after generation. They **must fail** (red). If they pass,
-either the behavior exists or the generator is wrong.
+Generate the project-specific test pipeline — the `pipeline-builder` agent
+produces the generator + step handlers + runner; `dae_gherkin.py` is the
+portable, shipped parser. Run the acceptance tests — they **must fail** (red).
+If they pass, either the behavior exists or the generator is wrong.
 
 **Gate:** Acceptance tests fail as expected. Pipeline is functional.
 
@@ -109,55 +127,53 @@ For the detailed prompt template, see `references/prompts.md` — Phase 3.
 
 ### Phase 4 — Implementation
 
-**Assign to:** `implementer`
+**Assign to:** a fresh `implementer` agent.
 
-Instruct the implementer to:
-
+Instruct it to:
 1. Run acceptance tests — confirm they fail
 2. Pick the simplest failing acceptance test
 3. Write a unit test, then minimal code to pass it
-4. Refactor, repeat until that acceptance test passes
-5. Move to next failing acceptance test
+4. Refactor in-the-small, repeat until that acceptance test passes
+5. Move to the next failing acceptance test
 6. Continue until ALL acceptance + unit tests pass
 
 **Rules for the implementer:**
-- Never modify spec files — they are the contract
+- Never modify `spec.md` — it is the contract
 - Never modify generated test files — only regenerate
+- Take the code to green only — deep refactoring is the `refiner`'s phase
 - If a spec seems wrong, stop and ask the team lead
-- Report results of both test streams when done
 
-**Gate:** Both test streams green. Implementer reports results.
+**Gate:** Both test streams green (Checkpoint 5 exit criteria).
 
 For the detailed prompt template, see `references/prompts.md` — Phase 4.
 
-### Phase 5 — Post-Implementation Review
+### Phase 5 — Refine
 
-**Assign to:** `reviewer`
+**Assign to:** a fresh `refiner` agent.
 
-Two reviews:
+After both test streams are green, the refiner runs the engineer plugin's
+`refine` skill — the post-green code-improvement pass (reuse, quality, and
+efficiency lenses; every proposal charter-filtered). This is the dedicated
+improvement pass that the implementer does NOT do inline.
 
-1. **Spec review** — Run /atdd:spec-check. Check if implementation details
-   leaked into specs during development.
-2. **Code review** — Check test quality, code structure, missing edge cases.
-
-**Gate:** Reviews clean or issues addressed. Team lead approves.
+**Gate:** Checkpoint 6 exit criteria — refine ran, both streams still green,
+charter filter applied to every proposal.
 
 For the detailed prompt template, see `references/prompts.md` — Phase 5.
 
-### Phase 6 — Mutation Testing (Optional)
+### Phase 6 — Verify & Harden
 
-**Assign to:** `reviewer` or `implementer`
+**Assign to:** a fresh `architect` agent — `agent_id` MUST differ from the
+implementer's and the refiner's.
 
-After both test streams are green and reviews pass, run mutation testing
-to verify test quality:
+Independent verification and hardening:
+1. `consistency-check` — artifacts agree
+2. `crap-analyzer` — CRAP + coverage (Checkpoint 7)
+3. mutation testing — **driven by the charter's mutation policy**, not agent
+   discretion. If the charter mandates mutation, it runs; the architect does
+   not get to skip it because it is slow. (Checkpoint 8)
 
-1. Run `/atdd:mutate` to generate mutants and measure mutation score
-2. Analyze surviving mutants — identify real test gaps vs. equivalent mutants
-3. Run `/atdd:kill-mutants` to write targeted tests for survivors
-4. Re-run mutations to confirm kills
-
-**Gate:** Mutation score meets target (90%+ recommended). Remaining
-survivors documented as equivalent mutants.
+**Gate:** Checkpoints 7 + 8 exit criteria met.
 
 For the detailed prompt template, see `references/prompts.md` — Phase 6.
 
@@ -167,23 +183,23 @@ When all phases pass:
 
 1. Run both test streams one final time to confirm green
 2. Ask the user whether to commit (do not auto-commit)
-3. Ask whether to iterate with the next feature (return to Phase 1)
-   or shut down the team
+3. Ask whether to iterate with the next feature (return to Phase 1) or stop
 
 ## Tips for Team Leads
 
 - **Never delegate spec approval.** Specs are the team lead's contract.
-- **Run spec-check twice** — before and after implementation.
-- **Test portability.** Verify specs would work for a different implementation language.
-- **Scope tightly.** One feature per cycle. Do not spec the whole system.
-- **Verify both streams personally** before accepting the implementer's work.
-- **Keep the team informed.** When revising specs after review, notify the
-  implementer so they don't work against stale specs.
+- **Each phase is a fresh agent.** Do not keep one agent alive across phases —
+  that is the erosion the per-phase model exists to prevent.
+- **Verify the `agent_id` binding.** The architect must not be the implementer
+  or the refiner — verification independence (Principle 7).
+- **Read the handoff, not the chat.** A phase's durable handoff is the input to
+  the next phase; it survives a compaction, a chat message does not.
+- **Scope tightly.** One feature per pipeline. Do not spec the whole system.
 
 ## Additional Resources
 
 ### Reference Files
 
 For detailed prompt templates for each phase:
-- **`references/prompts.md`** — Copy-paste prompt templates for every phase,
-  including the team creation prompt and all agent instructions
+- **`references/prompts.md`** — per-phase agent spawn prompts, each with the
+  anchor block and the handoff-ending instruction.
