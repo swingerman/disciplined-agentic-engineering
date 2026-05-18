@@ -60,7 +60,7 @@ the goal was met.
 ### Design
 
 A new locked section in the Foundation Design doc: the **Checkpoint Exit
-Contract**. Every checkpoint gets three things:
+Contract**. Every checkpoint gets:
 
 - **Goal** — one line, the observable outcome of the stage.
 - **Exit criteria** — a short list of verifiable conditions, each objectively
@@ -68,6 +68,18 @@ Contract**. Every checkpoint gets three things:
   a threshold, a human approved).
 - **Verifier** — `self` or `independent`. `independent` follows Principle 7 and
   the manifest's `verification.apply_to_checkpoints`.
+
+Each individual exit criterion additionally declares **`verified_by`** — *how* it
+is checked:
+
+- **`tool`** — an objective command (a test run, `dae_gherkin.py`,
+  `crap-analyzer`, `dae_handoff.py`). The criterion's evidence is the tool's
+  actual output. This is the guard rail — it cannot be rationalized past.
+- **`human`** — a human approval.
+- **`judgment`** — an agent assessment with no backing tool. The weakest form.
+  **Design rule:** prefer `tool` wherever a criterion can be made objectively
+  checkable; `judgment` should shrink over time, not grow. A rule the agent is
+  asked to follow is soft; a tool it must satisfy is the actual guard rail.
 
 `feature.md` (Checkpoint 1.5) is recognized as the existing instance of this
 pattern — the contract generalizes it rather than replacing it.
@@ -98,10 +110,16 @@ evidence:
 
 ```yaml
 exit_criteria:
+  - criterion: "spec.md parses to a valid IR"
+    verified_by: tool
+    met: true
+    evidence: "dae_gherkin.py exited 0; 12 scenarios parsed"
   - criterion: "every AC traces to the feature.md outcome/scope"
+    verified_by: judgment
     met: true
     evidence: "8/8 ACs cross-referenced; see acs.md trace column"
   - criterion: "human approved"
+    verified_by: human
     met: false
     evidence: "awaiting review — handoff flagged human_action_needed"
 ```
@@ -364,6 +382,11 @@ Per the writing-skills discipline (RED-GREEN-REFACTOR with subagents):
 
 ## Out of scope
 
-- **Spec B — test impact analysis.** Separate brainstorm + spec cycle.
+- **Spec C — charter-derived architecture fitness tool.** An independent,
+  test-like check for the charter's architectural rules (dependency/layering,
+  naming, file layout, forbidden patterns) — the guard rail for "unified by a
+  vision." Its own brainstorm + spec cycle, prioritized *ahead of* Spec B.
+- **Spec B — test impact analysis.** Changed-files → affected-scenarios mapper.
+  Separate brainstorm + spec cycle, after Spec C.
 - **Deeper `atdd-team` ↔ engineer-plugin convergence** — `atdd-team` delegating to
   engineer skills per phase.

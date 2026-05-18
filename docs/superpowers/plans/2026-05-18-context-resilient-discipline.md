@@ -56,6 +56,12 @@ Each checkpoint declares:
 - **Verifier** — `self` or `independent` (Principle 7; the manifest's
   `verification.apply_to_checkpoints` decides which checkpoints are independent).
 
+Each exit criterion declares `verified_by` — *how* it is checked: `tool` (an
+objective command; the evidence is the tool's output), `human` (an approval), or
+`judgment` (an agent assessment with no backing tool). Design rule: prefer
+`tool` wherever a criterion can be made objectively checkable; `judgment` is the
+weakest form and should shrink over time.
+
 | CP | Goal | Exit criteria | Verifier |
 |----|------|---------------|----------|
 | 0 Onboard | Project mapped onto DAE | CHARTER.md + manifest.yml exist and validate; consolidation.md produced for existing projects; charter sign-off + tracking decision made by human | human |
@@ -78,6 +84,8 @@ the checkpoint `in progress` (or `blocked` if a human is needed).
 ### Decisions locked
 
 - Every checkpoint has a goal, verifiable exit criteria, and a named verifier.
+- Each exit criterion declares `verified_by` (tool | human | judgment); `tool`
+  is preferred — an independent check, not the agent's say-so.
 - `feature.md` is Checkpoint 1.5's exit contract — not a special case.
 - `consistency-check` validates that done checkpoints have a satisfying handoff.
 ```
@@ -100,10 +108,16 @@ In Section 5's frontmatter example, after the `artifacts:` field, add:
 
 ```yaml
 exit_criteria:                     # required on checkpoint-advancing skills
+  - criterion: "spec.md parses to a valid IR"
+    verified_by: tool              # tool | human | judgment
+    met: true
+    evidence: "dae_gherkin.py exited 0; 12 scenarios"
   - criterion: "every AC traces to feature.md outcome/scope"
+    verified_by: judgment
     met: true
     evidence: "8/8 ACs cross-referenced in acs.md"
   - criterion: "human approved"
+    verified_by: human
     met: false
     evidence: "awaiting review"
 ```
@@ -627,8 +641,9 @@ In the `## Format` code block, after the `artifacts:` lines, add:
 ```markdown
 exit_criteria:                       # required on checkpoint-advancing skills
   - criterion: <one Section 8 exit criterion>
+    verified_by: <tool | human | judgment>
     met: <true | false>
-    evidence: <one line>
+    evidence: <one line; for `tool`, the command + its output>
 ```
 
 - [ ] **Step 2: Add `exit_criteria` to the "Required vs optional" lists**
@@ -699,8 +714,9 @@ In each skill's `## Handoff` section, add:
 
 ```markdown
 The handoff MUST include the `exit_criteria` block asserting each of this
-checkpoint's exit criteria (Foundation Design Section 8) with `met` + `evidence`.
-The checkpoint is marked done only when every criterion is met.
+checkpoint's exit criteria (Foundation Design Section 8) with `verified_by`,
+`met`, and `evidence`. For `verified_by: tool` criteria, the evidence MUST be the
+tool's actual output. The checkpoint is marked done only when every criterion is met.
 ```
 
 - [ ] **Step 4: Verify**
