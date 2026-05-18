@@ -37,8 +37,13 @@ Before major pipeline transitions and as a CI gate.
 | `plan.md` Charter Check: every ⚠️ deviation has a matching amendment | error |
 | Verification handoffs: `agent_id` ≠ implementer's (Principle 7) | error |
 | `tracker_ref` resolves on the configured tracker | warning |
-| `progress.md` checkpoint table consistent with `handoffs/` | warning |
+| Handoff completeness: no checkpoint marked done in `progress.md` lacks a complete handoff | error |
 | `parent_feature` set ⇒ parent exists and lists this in `child_features` | error |
+
+The handoff-completeness check is the after-the-fact sweep for handoff-as-gate
+(Foundation Design Section 5): run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py
+<feature-dir>` — it flags any checkpoint marked done with a missing,
+`interrupted`, or unmet-`exit_criteria` handoff.
 
 ### Project-scope checks
 
