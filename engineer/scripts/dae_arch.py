@@ -151,3 +151,89 @@ def check_file_size(root, files, cfg):
         if n > cap:
             violations.append((f, n, "file_size", "%d lines > max %d" % (n, cap)))
     return violations
+
+
+_PY_IMPORT = re.compile(r"^\s*(?:from\s+(\.[\w.]*|[\w.]+)\s+import|"
+                        r"import\s+([\w.]+))", re.MULTILINE)
+_JS_IMPORT = re.compile(r"""(?:from|require\(|import)\s*['"]([^'"]+)['"]""")
+
+
+def extract_imports(rel_path, text):
+    """The import specifiers in a source file (language by extension)."""
+    if rel_path.endswith(".py"):
+        return [a or b for a, b in _PY_IMPORT.findall(text)]
+    return _JS_IMPORT.findall(text)
+
+
+def _resolve_python(spec, importer, known):
+    """Resolve a Python import specifier to a repo-relative file, or None.
+
+    Handles project-rooted dotted modules (`pkg.mod` -> `pkg/mod.py`) and
+    relative imports (`.relmod` -> a sibling of the importing file).
+    """
+    if spec.startswith("."):
+        depth = len(spec) - len(spec.lstrip("."))
+        base = importer
+        for _ in range(depth):
+            base = os.path.dirname(base)
+        tail = spec.lstrip(".").replace(".", "/")
+        stem = os.path.join(base, tail) if tail else base
+    else:
+        stem = spec.replace(".", "/")
+    for cand in (stem + ".py", os.path.join(stem, "__init__.py")):
+        norm = os.path.normpath(cand)
+        if norm in known:
+            return norm
+    return None
+
+
+def _resolve_js(spec, importer, known):
+    """Resolve a JS/TS *relative* import to a repo-relative file, or None.
+
+    Bare specifiers (packages) return None — they are not project layers.
+    """
+    if not spec.startswith("."):
+        return None
+    stem = os.path.normpath(os.path.join(os.path.dirname(importer), spec))
+    exts = (".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs")
+    cands = [stem + e for e in exts]
+    cands += [os.path.join(stem, "index" + e) for e in exts]
+    for cand in cands:
+        norm = os.path.normpath(cand)
+        if norm in known:
+            return norm
+    return None
+
+
+def _layer_of(path, layer_globs):
+    """The layer name whose globs match `path`, or None."""
+    for name, globs in layer_globs:
+        if _match_any(path, globs):
+            return name
+    return None
+
+
+def check_layers(root, files, layer_rules, all_files):
+    """Flag imports that cross a `may_not_import` layer boundary."""
+    layer_globs = [(r["name"], _compile_globs(r["paths"])) for r in layer_rules]
+    forbidden = {r["name"]: set(r.get("may_not_import", [])) for r in layer_rules}
+    known = {os.path.normpath(f) for f in all_files}
+    violations = []
+    for f in files:
+        src_layer = _layer_of(f, layer_globs)
+        if src_layer is None or not forbidden.get(src_layer):
+            continue
+        text = "\n".join(_read_lines(root, f))
+        for spec in extract_imports(f, text):
+            if f.endswith(".py"):
+                target = _resolve_python(spec, f, known)
+            else:
+                target = _resolve_js(spec, f, known)
+            if target is None:
+                continue  # external / unresolvable — not a project layer
+            tgt_layer = _layer_of(target, layer_globs)
+            if tgt_layer in forbidden[src_layer]:
+                violations.append((f, 0, "layers",
+                                   "%s must not import %s (%s)"
+                                   % (src_layer, tgt_layer, target)))
+    return violations

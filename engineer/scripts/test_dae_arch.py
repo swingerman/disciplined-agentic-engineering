@@ -82,5 +82,63 @@ class TestGenericChecks(unittest.TestCase):
         self.assertEqual(da.check_file_size(self.root, ["src/generated/g.py"], cfg), [])
 
 
+class TestImports(unittest.TestCase):
+    def test_python_imports(self):
+        text = "import os\nfrom pkg.mod import thing\nfrom .relmod import other\n"
+        specs = da.extract_imports("a/b.py", text)
+        self.assertIn("os", specs)
+        self.assertIn("pkg.mod", specs)
+        self.assertIn(".relmod", specs)
+
+    def test_js_imports(self):
+        text = ('import x from "./local";\n'
+                'const y = require("../up/dep");\n'
+                'import "react";\n')
+        specs = da.extract_imports("a/b.ts", text)
+        self.assertIn("./local", specs)
+        self.assertIn("../up/dep", specs)
+        self.assertIn("react", specs)
+
+
+class TestLayers(unittest.TestCase):
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.root)
+
+    def test_layering_violation_python(self):
+        _write(self.root, "src/domain/order.py", "from src.infra.db import save\n")
+        _write(self.root, "src/infra/db.py", "def save(): pass\n")
+        layers = [
+            {"name": "domain", "paths": ["src/domain/**"],
+             "may_not_import": ["infra"]},
+            {"name": "infra", "paths": ["src/infra/**"]},
+        ]
+        files = ["src/domain/order.py", "src/infra/db.py"]
+        v = da.check_layers(self.root, files, layers, files)
+        self.assertEqual(len(v), 1)
+        self.assertEqual(v[0][2], "layers")
+        self.assertIn("domain", v[0][3])
+        self.assertIn("infra", v[0][3])
+
+    def test_layering_clean(self):
+        _write(self.root, "src/domain/order.py", "from src.domain.money import M\n")
+        _write(self.root, "src/domain/money.py", "M = 1\n")
+        layers = [{"name": "domain", "paths": ["src/domain/**"],
+                   "may_not_import": ["infra"]},
+                  {"name": "infra", "paths": ["src/infra/**"]}]
+        files = ["src/domain/order.py", "src/domain/money.py"]
+        self.assertEqual(da.check_layers(self.root, files, layers, files), [])
+
+    def test_layering_violation_js(self):
+        _write(self.root, "src/web/page.ts", 'import {db} from "../infra/db";\n')
+        _write(self.root, "src/infra/db.ts", "export const db = 1;\n")
+        layers = [{"name": "web", "paths": ["src/web/**"],
+                   "may_not_import": ["infra"]},
+                  {"name": "infra", "paths": ["src/infra/**"]}]
+        files = ["src/web/page.ts", "src/infra/db.ts"]
+        v = da.check_layers(self.root, files, layers, files)
+        self.assertEqual(len(v), 1)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
