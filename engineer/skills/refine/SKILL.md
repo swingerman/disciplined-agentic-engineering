@@ -1,9 +1,9 @@
 ---
-name: simplify
-description: Use after a feature's code is implemented and passing, to clean up the changed code before verification. Triggers — "/engineer.simplify", "simplify this code", "clean up the feature", "refactor what we built".
+name: refine
+description: Use after a feature's code is implemented and passing, to clean up the changed code before verification. Triggers — "/engineer.refine", "refine this code", "clean up the feature", "refactor what we built".
 ---
 
-# simplify
+# refine
 
 Charter-bound clean-up of a feature's changed code — Checkpoint 6. Modeled on Claude Code's stock `/simplify` (a three-subagent parallel review) with two layers the stock skill lacks: **charter validation** of every proposal, and **graceful breaking changes**.
 
@@ -13,7 +13,7 @@ The behavior contract (ACs + specs) is sacred — a refactor that breaks it is a
 
 Checkpoint 6, after `atdd:atdd-team` produces passing code, before `crap-analyzer` (Checkpoint 7).
 
-**Verification independence:** if `manifest.verification.apply_to_checkpoints` includes `6`, simplify must run on a non-implementer agent. The three review subagents (Step 2) are fresh regardless, so independence is satisfied by construction.
+**Verification independence:** if `manifest.verification.apply_to_checkpoints` includes `6`, refine must run on a non-implementer agent. The three review subagents (Step 2) are fresh regardless, so independence is satisfied by construction.
 
 **Not for:** changing behavior (`feature-edit`); risk analysis (`crap-analyzer`); code that isn't implemented/green yet.
 
@@ -33,7 +33,7 @@ Checkpoint 6, after `atdd:atdd-team` produces passing code, before `crap-analyze
 7. **Apply** — apply selected; install graceful paths where needed; re-run both test streams. Any failure → revert that proposal and report.
 8. **Handoff** — emit a summary.
 
-If a charter rule itself blocks a genuinely better design, surface it in the handoff (→ `feature-edit` / charter amendment). simplify does not amend the charter.
+If a charter rule itself blocks a genuinely better design, surface it in the handoff (→ `feature-edit` / charter amendment). refine does not amend the charter.
 
 ## Handoff
 

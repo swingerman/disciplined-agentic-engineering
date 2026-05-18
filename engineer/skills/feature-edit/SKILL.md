@@ -7,13 +7,13 @@ description: Use when an in-flight feature must change — scope shifts, an AC i
 
 Intent-driven editing of an in-flight feature. The human describes *what should now be true*; this skill figures out *which files and tools to touch* and orchestrates the change, including the downstream cascade.
 
-The cascade-owning skill — `clarify` and `simplify` deliberately stay single-artifact and route multi-artifact propagation here. Mixed mode: the agent proposes an edit plan, the human confirms before any write.
+The cascade-owning skill — `clarify` and `refine` deliberately stay single-artifact and route multi-artifact propagation here. Mixed mode: the agent proposes an edit plan, the human confirms before any write.
 
 ## When to use
 
 Any time an existing feature's artifacts must change. `checkpoint: null`.
 
-**Not for:** a brand-new capability (`discuss`); within-one-artifact ambiguity, no behavior change (`clarify`); validating consistency (`consistency-check`); cleaning up code (`simplify`).
+**Not for:** a brand-new capability (`discuss`); within-one-artifact ambiguity, no behavior change (`clarify`); validating consistency (`consistency-check`); cleaning up code (`refine`).
 
 ## Workflow
 
