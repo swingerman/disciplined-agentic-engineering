@@ -134,3 +134,25 @@ and are committed.
 - Generated tests fail on an unsupported step, a missing example value,
   or a failed assertion.
 - Output is deterministic for a fixed IR.
+
+## Test Impact Analysis (optional)
+
+When `manifest.acceptance.impact_analysis` is `on`, the generated runner gains
+two modes built on the portable `dae_impact.py`:
+
+- **Coverage-collection mode** — run the acceptance scenarios under the
+  project's coverage tool, attribute coverage per scenario, and emit a
+  normalized coverage feed: `[{"scenario": "<id>", "files": ["src/a.py", ...]},
+  ...]`. Then run `dae_impact.py build <feature-dir> <feed.json>` to refresh
+  `features/NNN-slug/.build/impact-map.json`. Do this on every full run.
+- **Impact-run mode** — run `dae_impact.py select <feature-dir>`; it prints the
+  scenario ids to run, or `ALL`. Run only the generated tests for those
+  scenarios (all, on `ALL`).
+
+Coverage attribution is framework-specific — use the project's per-test
+coverage contexts, or run one scenario's generated test file at a time under
+coverage. `dae_impact.py` itself is language-agnostic; it only consumes the
+normalized feed.
+
+Impact-run mode is for the **inner loop** only. The full acceptance run still
+happens at the Checkpoint 5 exit gate and in verification.
