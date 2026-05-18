@@ -11,7 +11,7 @@ description: >-
   spec writing, spec review, pipeline generation, implementation, refine,
   verify & harden — spawning a fresh agent per phase so no agent erodes
   across a long-running feature.
-version: 0.5.0
+version: 0.6.0
 ---
 
 # Team-Based ATDD Workflow
