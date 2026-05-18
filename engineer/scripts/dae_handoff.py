@@ -78,3 +78,26 @@ def parse_handoff(text):
             continue
         i += 1
     return rec
+
+
+def read_progress(text):
+    """Parse the progress.md Checkpoints table -> {checkpoint: done_bool}."""
+    result = {}
+    for line in text.splitlines():
+        if not line.lstrip().startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 3:
+            continue
+        cp = _num(cells[0])
+        if cp is None:
+            continue  # header or separator row
+        result[cp] = "done" in cells[2].lower()
+    return result
+
+
+def _rec_complete(rec):
+    """True if a handoff record means its checkpoint is genuinely done."""
+    if rec["status"] != "complete":
+        return False
+    return all(c["met"] is True for c in rec["exit_criteria"])

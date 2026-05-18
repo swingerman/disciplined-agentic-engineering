@@ -58,5 +58,52 @@ class TestParseHandoff(unittest.TestCase):
         self.assertFalse(all(c["met"] for c in rec["exit_criteria"]))
 
 
+PROGRESS = """# Feature 001: x — Progress
+
+> ▶ CP2 ACs — 2/2 criteria met | NEXT: spec | BLOCKED: none
+
+## Checkpoints
+| # | Stage | Status | Artifact |
+|---|-------|--------|----------|
+| 1.5 | Ready | ✅ done | feature.md |
+| 2 | ACs | ✅ done | acs.md |
+| 3 | Spec | 🟡 in progress | — |
+| 4 | Plan | ⏳ pending | — |
+"""
+
+
+class TestReadProgress(unittest.TestCase):
+    def test_done_and_pending(self):
+        cps = dh.read_progress(PROGRESS)
+        self.assertTrue(cps[1.5])
+        self.assertTrue(cps[2])
+        self.assertFalse(cps[3])
+        self.assertFalse(cps[4])
+
+    def test_header_and_separator_skipped(self):
+        cps = dh.read_progress(PROGRESS)
+        self.assertEqual(set(cps), {1.5, 2, 3, 4})
+
+
+class TestRecComplete(unittest.TestCase):
+    def test_complete(self):
+        self.assertTrue(dh._rec_complete(dh.parse_handoff(HANDOFF_COMPLETE)))
+
+    def test_unmet_criterion_blocks(self):
+        self.assertFalse(dh._rec_complete(dh.parse_handoff(HANDOFF_UNMET)))
+
+    def test_interrupted_blocks(self):
+        self.assertFalse(dh._rec_complete(dh.parse_handoff(HANDOFF_INTERRUPTED)))
+
+    def test_no_criteria_complete_on_status(self):
+        legacy = """---
+skill: x
+checkpoint: 4
+status: complete
+---
+"""
+        self.assertTrue(dh._rec_complete(dh.parse_handoff(legacy)))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
