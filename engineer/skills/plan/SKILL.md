@@ -19,6 +19,8 @@ If `spec.md` is missing, warn — planning should follow spec formalization — 
 
 ## Workflow
 
+**Step 0 — Entry gate.** Before starting, verify the prior checkpoint is complete: run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py <feature-dir> --through 3`. On a non-zero exit, **stop** and surface the gap to the human — do not proceed.
+
 1. **Resolve + load** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); load `feature.md`, `acs.md`, `spec.md`, `CHARTER.md`.
 2. **Propose the architecture** — draft only the Architecture section (components, data flow, where new code lives, coupling, key decisions + rationale + alternatives). Present it; iterate until the human confirms. Do not draft the rest until then.
 3. **Draft the rest** — once confirmed, draft the remaining sections; the human reviews the finished file.
@@ -31,6 +33,8 @@ If `spec.md` is missing, warn — planning should follow spec formalization — 
 ## Handoff
 
 Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: 4`; `recommended_next`: "/atdd:atdd-team to implement against the specs". If a deviation needs a decision, `human_action_needed: yes` (decision).
+
+The handoff MUST include the `exit_criteria` block asserting each of Checkpoint 4's exit criteria (Foundation Design Section 8) with `verified_by`, `met`, and `evidence`. For `verified_by: tool` criteria, the evidence MUST be the tool's actual output. The checkpoint is marked done only when every criterion is met.
 
 ## References
 

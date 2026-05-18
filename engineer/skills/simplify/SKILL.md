@@ -19,6 +19,8 @@ Checkpoint 6, after `atdd:atdd-team` produces passing code, before `crap-analyze
 
 ## Workflow
 
+**Step 0 — Entry gate.** Before starting, verify the prior checkpoint is complete: run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py <feature-dir> --through 5`. On a non-zero exit, **stop** and surface the gap to the human — do not proceed.
+
 1. **Resolve + scope** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); locate the feature. Scope = the feature branch's changed code (`git diff` against the branch point). Load `feature.md`, `acs.md`, `spec.md`, `CHARTER.md`.
 2. **Dispatch three parallel review subagents** (`superpowers:dispatching-parallel-agents`), each over the same changed code:
    - **Reuse** — duplication, reinvented wheels, dead code, missed existing utilities
@@ -36,6 +38,8 @@ If a charter rule itself blocks a genuinely better design, surface it in the han
 ## Handoff
 
 Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `agent_id` must differ from the implementer if checkpoint 6 is independence-gated. `checkpoint: 6`; `recommended_next`: "crap-analyzer for Light Verify".
+
+The handoff MUST include the `exit_criteria` block asserting each of Checkpoint 6's exit criteria (Foundation Design Section 8) with `verified_by`, `met`, and `evidence`. For `verified_by: tool` criteria, the evidence MUST be the tool's actual output. The checkpoint is marked done only when every criterion is met.
 
 ## References
 

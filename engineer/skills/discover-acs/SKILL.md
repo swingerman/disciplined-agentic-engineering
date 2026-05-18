@@ -21,6 +21,8 @@ On a feature with `autonomy_level` set and `status` of `ready` (greenfield) or `
 
 ## Workflow
 
+**Step 0 — Entry gate.** Before starting, verify the prior checkpoint is complete: run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py <feature-dir> --through 1.5`. On a non-zero exit, **stop** and surface the gap to the human — do not proceed.
+
 1. **Resolve + validate** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); locate the feature. Reject if not found, if `status: parked` (→ `discuss` to promote first), or if `acs.md` already exists with content. Pick the mode: existing spec/code present → reverse-engineer; else → greenfield.
 2. **Load** — `feature.md`, `CHARTER.md`, `manifest.yml`, prior `handoffs/`. Reverse-engineer mode: also load the existing spec / design doc / relevant code.
 3. **Discover the ACs:**
@@ -45,6 +47,8 @@ In reverse-engineer mode, note in the handoff that `acs.md` and the original spe
 ## Handoff
 
 Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: 2`; `human_action_needed: yes` (review); `recommended_next`: "/atdd:atdd to formalize as Given/When/Then specs" (greenfield), or "/engineer.consistency-check to reconcile acs.md against the existing spec" (reverse-engineer).
+
+The handoff MUST include the `exit_criteria` block asserting each of Checkpoint 2's exit criteria (Foundation Design Section 8) with `verified_by`, `met`, and `evidence`. For `verified_by: tool` criteria, the evidence MUST be the tool's actual output. The checkpoint is marked done only when every criterion is met.
 
 ## References
 
