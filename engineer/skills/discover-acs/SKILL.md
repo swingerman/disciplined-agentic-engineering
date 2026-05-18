@@ -46,7 +46,7 @@ In reverse-engineer mode, note in the handoff that `acs.md` and the original spe
 
 ## Handoff
 
-Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: 2`; `human_action_needed: yes` (review); `recommended_next`: "/atdd:atdd to formalize as Given/When/Then specs" (greenfield), or "/engineer.consistency-check to reconcile acs.md against the existing spec" (reverse-engineer).
+Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: 2`; `human_action_needed: yes` (review); `recommended_next`: "/engineer.atdd to formalize as Given/When/Then specs" (greenfield), or "/engineer.consistency-check to reconcile acs.md against the existing spec" (reverse-engineer).
 
 The handoff MUST include the `exit_criteria` block asserting each of Checkpoint 2's exit criteria (Foundation Design Section 8) with `verified_by`, `met`, and `evidence`. For `verified_by: tool` criteria, the evidence MUST be the tool's actual output. The checkpoint is marked done only when every criterion is met.
 
