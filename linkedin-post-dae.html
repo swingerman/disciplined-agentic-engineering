@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LinkedIn Post — Disciplined Agentic Engineering</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    max-width: 680px;
+    margin: 40px auto;
+    padding: 20px;
+    line-height: 1.6;
+    color: #333;
+    font-size: 15px;
+  }
+  h2 {
+    color: #888;
+    font-size: 13px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 8px;
+    margin-top: 40px;
+  }
+  .post {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 24px;
+  }
+  blockquote {
+    border-left: 3px solid #0a66c2;
+    margin: 12px 0;
+    padding: 4px 16px;
+    color: #555;
+    font-style: italic;
+  }
+  code {
+    background: #f4f4f4;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+  pre {
+    background: #f4f4f4;
+    padding: 12px 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 13px;
+  }
+  .instructions {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="instructions">
+  <strong>Instructions:</strong> Select all the text inside the bordered box below and copy-paste it into LinkedIn's post editor. The formatting (bold, italic, quotes, code blocks) should carry over. You may need to touch up spacing after pasting.
+</div>
+
+<div class="post">
+
+<b>From a plugin to a methodology: Disciplined Agentic Engineering</b>
+<br><br>
+
+A few weeks ago I packaged Robert C. Martin's acceptance-test approach as a Claude Code plugin. That was the seed. Watching where Uncle Bob took it next is what grew it into a whole methodology.
+<br><br>
+
+He kept going — running a <i>swarm</i> of Claude agents for days at a stretch. And the swarm started to fail in instructive ways:
+<br><br>
+
+<blockquote>"They've started to lose their particular identities. The coder is doing crap analysis. The refactorer finds it has nothing to do because the coder did it... The architect decided to not run mutation tests because they take a long time."</blockquote>
+
+None of that is the model being dumb. It is a <b>methodology</b> gap. Discipline that lives in a prompt is soft — the agent rationalizes past it, and it erodes every time the context compacts. Uncle Bob put the fix precisely:
+<br><br>
+
+<blockquote>"You, the architect, must drive that vision by constructing the guard rails that enforce it. Those guard rails are not AI rules — they are independent tools that the AI uses to validate what it has built."</blockquote>
+
+So I built <b>Disciplined Agentic Engineering (DAE)</b>. One sentence: <b>humans direct, agents type.</b> Engineers own architecture, behavior decisions, and verification; agents do the keystrokes. Discipline lives in contracts at every layer — not in good intentions.
+<br><br>
+
+<b>WHAT THAT LOOKS LIKE</b>
+<br><br>
+
+<ul>
+<li>A <b>charter</b> — the binding design agreement every checkpoint enforces.</li>
+<li>An <b>8-checkpoint pipeline</b> per feature — each checkpoint with a <i>verifiable</i> exit contract, not a vibe. A stage is done only when a tool says so.</li>
+<li><b>Verification independence</b> — the agent that wrote the code is never the one that signs it off.</li>
+<li><b>Context resilience</b> — prefer fresh, checkpoint-scoped runs over marathon agents; re-anchor after every compaction.</li>
+<li>A <b>charter architecture fitness tool</b> — your layering and convention rules, checked like a test.</li>
+<li><b>Test impact analysis</b> — change a file, run only the scenarios it actually affects.</li>
+</ul>
+
+Every one of those started as a failure Uncle Bob hit in public, and became a guard rail — an independent tool, not a rule in a prompt.
+<br><br>
+
+<b>THE KIT</b>
+<br><br>
+
+DAE ships as three Claude Code plugins:
+<br><br>
+
+<ul>
+<li><code>engineer</code> — the DAE pipeline: feature intake, AC discovery, spec writing, planning, refinement, verification.</li>
+<li><code>atdd</code> — Uncle Bob's acceptance pipeline: standard Gherkin specs, a project-specific test generator, two test streams.</li>
+<li><code>crap-analyzer</code> — change-risk analysis on the code you just touched.</li>
+</ul>
+
+Install it:
+<br><br>
+
+<pre><code>/plugin marketplace add swingerman/disciplined-agentic-engineering</code></pre>
+<br>
+
+Or read the methodology: <a href="https://github.com/swingerman/disciplined-agentic-engineering">github.com/swingerman/disciplined-agentic-engineering</a>
+<br><br>
+
+The throughline is the one Uncle Bob keeps landing on: <i>the newer things are, the more relevant the old rules become.</i> AI did not retire software-engineering discipline. It made it the bottleneck — and the thing most worth automating.
+<br><br>
+
+Full credit to Robert C. Martin. The experiments, the struggles, and the lessons are his. DAE is an attempt to make that discipline the path of least resistance.
+<br><br>
+
+#AI #SoftwareEngineering #ClaudeCode #ATDD #AgenticEngineering #UncleBob
+
+</div>
+
+</body>
+</html>
