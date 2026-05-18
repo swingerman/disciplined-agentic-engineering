@@ -3,6 +3,10 @@
 
 Run: python3 -m unittest test_dae_impact -v
 """
+import json
+import os
+import shutil
+import tempfile
 import unittest
 
 import dae_impact as di
@@ -90,6 +94,39 @@ class TestSelect(unittest.TestCase):
     def test_missing_map_returns_all(self):
         self.assertEqual(di.select_scenarios(IR_V1, None, ["src/user.py"]),
                          "ALL")
+
+
+def _feature_dir(ir):
+    """A temp feature dir with .build/spec.json written. Caller cleans up."""
+    d = tempfile.mkdtemp()
+    os.makedirs(os.path.join(d, ".build"))
+    with open(os.path.join(d, ".build", "spec.json"), "w", encoding="utf-8") as f:
+        json.dump(ir, f)
+    return d
+
+
+class TestCli(unittest.TestCase):
+    def test_build_writes_map(self):
+        d = _feature_dir(IR_V1)
+        self.addCleanup(shutil.rmtree, d)
+        feed_path = os.path.join(d, "feed.json")
+        with open(feed_path, "w", encoding="utf-8") as f:
+            json.dump(FEED, f)
+        rc = di.main(["build", d, feed_path])
+        self.assertEqual(rc, 0)
+        with open(os.path.join(d, ".build", "impact-map.json")) as f:
+            m = json.load(f)
+        self.assertIn("src/auth.py", m["file_map"])
+
+    def test_build_missing_ir(self):
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d)
+        self.assertEqual(di.main(["build", d, "nope.json"]), 2)
+
+    def test_load_map_absent(self):
+        d = _feature_dir(IR_V1)
+        self.addCleanup(shutil.rmtree, d)
+        self.assertIsNone(di.load_map(d))
 
 
 if __name__ == "__main__":
