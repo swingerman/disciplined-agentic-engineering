@@ -91,3 +91,63 @@ def files_in_scope(root, full):
         if not names:
             names = _git(root, "ls-files").splitlines()  # no diff -> full
     return [n for n in names if n.endswith(SOURCE_EXTENSIONS)]
+
+
+def _read_lines(root, rel):
+    """Lines of a repo-relative file ([] if unreadable)."""
+    try:
+        with open(os.path.join(root, rel), encoding="utf-8", errors="replace") as f:
+            return f.read().splitlines()
+    except OSError:
+        return []
+
+
+def check_forbidden(root, files, rules):
+    """Flag lines matching a forbidden pattern within the rule's path scope."""
+    violations = []
+    for rule in rules:
+        pat = re.compile(rule["pattern"])
+        globs = _compile_globs(rule.get("paths", []))
+        reason = rule.get("reason", "matches forbidden pattern %r" % rule["pattern"])
+        for f in files:
+            if not _match_any(f, globs):
+                continue
+            for n, line in enumerate(_read_lines(root, f), 1):
+                if pat.search(line):
+                    violations.append((f, n, "forbidden_patterns", reason))
+    return violations
+
+
+def check_naming(files, rules):
+    """Flag files whose basename fails the rule's filename regex."""
+    violations = []
+    for rule in rules:
+        globs = _compile_globs(rule.get("paths", []))
+        name_re = re.compile(rule["filename_must_match"])
+        reason = rule.get("reason",
+                          "filename must match %r" % rule["filename_must_match"])
+        for f in files:
+            if not _match_any(f, globs):
+                continue
+            if not name_re.search(os.path.basename(f)):
+                violations.append((f, 0, "naming", reason))
+    return violations
+
+
+def check_file_size(root, files, cfg):
+    """Flag files whose line count exceeds the nearest matching max_lines cap."""
+    default = cfg.get("max_lines")
+    overrides = [(_compile_globs(ov["paths"]), ov["max_lines"])
+                 for ov in cfg.get("overrides", [])]
+    violations = []
+    for f in files:
+        cap = default
+        for globs, limit in overrides:
+            if _match_any(f, globs):
+                cap = limit
+        if cap is None:
+            continue
+        n = len(_read_lines(root, f))
+        if n > cap:
+            violations.append((f, n, "file_size", "%d lines > max %d" % (n, cap)))
+    return violations
