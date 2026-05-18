@@ -237,3 +237,77 @@ def check_layers(root, files, layer_rules, all_files):
                                    "%s must not import %s (%s)"
                                    % (src_layer, tgt_layer, target)))
     return violations
+
+
+def audit_rules(root, files, rules):
+    """Run every configured check over `files`; return all violations."""
+    violations = []
+    if rules.get("forbidden_patterns"):
+        violations += check_forbidden(root, files, rules["forbidden_patterns"])
+    if rules.get("naming"):
+        violations += check_naming(files, rules["naming"])
+    if rules.get("file_size"):
+        violations += check_file_size(root, files, rules["file_size"])
+    if rules.get("layers"):
+        all_files = files_in_scope(root, full=True)
+        violations += check_layers(root, files, rules["layers"], all_files)
+    return violations
+
+
+def audit(start_dir, full):
+    """Resolve the project, run the checks. Returns (root, rules, violations)
+    or (None, None, None) if there is no manifest / no architecture section.
+    """
+    result = dae_resolve.resolve(start_dir)
+    if result is None:
+        return None, None, None
+    rules = (result["manifest"] or {}).get("architecture")
+    if not rules:
+        return result["methodology_root"], None, None
+    root = result["methodology_root"]
+    files = files_in_scope(root, full)
+    return root, rules, audit_rules(root, files, rules)
+
+
+def main(argv):
+    args = list(argv)
+    fmt = "text"
+    if "--format" in args:
+        i = args.index("--format")
+        fmt = args[i + 1] if i + 1 < len(args) else "text"
+        del args[i:i + 2]
+    full = False
+    if "--full" in args:
+        full = True
+        args.remove("--full")
+    if len(args) > 1:
+        sys.stderr.write("usage: dae_arch.py [--full] [--format json] [START_DIR]\n")
+        return 3
+    start_dir = args[0] if args else os.getcwd()
+
+    root, rules, violations = audit(start_dir, full)
+    if root is None:
+        sys.stderr.write("no .engineer/manifest.yml found — run /engineer.onboard\n")
+        return 2
+    if rules is None:
+        sys.stderr.write("no `architecture:` section in the manifest — nothing to check\n")
+        return 2
+
+    if fmt == "json":
+        json.dump([{"file": f, "line": n, "kind": k, "message": m}
+                   for f, n, k, m in violations], sys.stdout, indent=2)
+        sys.stdout.write("\n")
+    else:
+        for kind in ("layers", "forbidden_patterns", "naming", "file_size"):
+            hits = [v for v in violations if v[2] == kind]
+            if hits:
+                sys.stdout.write("\n%s (%d):\n" % (kind, len(hits)))
+                for f, n, _, m in hits:
+                    loc = "%s:%d" % (f, n) if n else f
+                    sys.stdout.write("  %s — %s\n" % (loc, m))
+        sys.stdout.write("\n%d violation(s)\n" % len(violations))
+    return 1 if violations else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

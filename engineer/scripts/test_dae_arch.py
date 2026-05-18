@@ -140,5 +140,24 @@ class TestLayers(unittest.TestCase):
         self.assertEqual(len(v), 1)
 
 
+class TestAudit(unittest.TestCase):
+    def test_audit_collects_all_kinds(self):
+        rules = {
+            "forbidden_patterns": [{"pattern": "TODO", "paths": ["**"]}],
+            "file_size": {"max_lines": 1},
+        }
+        root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, root)
+        _write(root, "src/a.py", "TODO\nx\n")
+        v = da.audit_rules(root, ["src/a.py"], rules)
+        kinds = sorted(set(x[2] for x in v))
+        self.assertEqual(kinds, ["file_size", "forbidden_patterns"])
+
+    def test_audit_empty_rules(self):
+        root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, root)
+        self.assertEqual(da.audit_rules(root, [], {}), [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
