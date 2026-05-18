@@ -73,16 +73,6 @@ def _make_project(tmp):
         fh.write(FEATURE_BETA)
 
 
-class TestFrontmatter(unittest.TestCase):
-    def test_extract(self):
-        block = tl.extract_frontmatter(FEATURE_ALPHA)
-        self.assertIn("slug: alpha", block)
-        self.assertNotIn("# Alpha Feature", block)
-
-    def test_no_frontmatter(self):
-        self.assertIsNone(tl.extract_frontmatter("# Just a heading\n"))
-
-
 class TestCheckpoint(unittest.TestCase):
     def test_reads_current_stage(self):
         with tempfile.TemporaryDirectory() as tmp:

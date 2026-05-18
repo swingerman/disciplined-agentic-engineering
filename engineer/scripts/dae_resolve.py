@@ -178,6 +178,20 @@ def read_manifest(text):
     return value
 
 
+def extract_frontmatter(text):
+    """Return the YAML frontmatter block of a markdown file — the text between
+    the first pair of `---` fences — or None if there is none or it is
+    unterminated. Companion to read_manifest, which parses the returned block.
+    """
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return None
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            return "\n".join(lines[1:i])
+    return None
+
+
 # --------------------------------------------------------------------------
 # Resolution
 # --------------------------------------------------------------------------

@@ -14,6 +14,12 @@ import os
 import re
 import sys
 
+import dae_resolve
+
+# Checkpoints 0 (Onboard) and 1.5 (Ready) are human/feature-init gated — they
+# carry no skill handoff, so they never count as a gate failure.
+NON_SKILL_CHECKPOINTS = (0, 1.5)
+
 
 def _num(val):
     """Parse a checkpoint number ('2' -> 2, '1.5' -> 1.5); None if not numeric."""
@@ -24,16 +30,8 @@ def _num(val):
 
 
 def _frontmatter(text):
-    """Return the lines between the first pair of --- fences ([] if none)."""
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        return []
-    out = []
-    for line in lines[1:]:
-        if line.strip() == "---":
-            return out
-        out.append(line)
-    return []  # unterminated -> treat as no frontmatter
+    """The YAML frontmatter block as a list of lines ([] if none)."""
+    return (dae_resolve.extract_frontmatter(text) or "").splitlines()
 
 
 def _parse_criteria(lines, start):
@@ -133,15 +131,14 @@ def audit(feature_dir):
 def gate(feature_dir, through=None):
     """Return (ok, message). ok is False if a checkpoint <= `through` is not
     backed by a complete handoff, or any claimed-done checkpoint has no handoff.
-
-    Checkpoint 1.5 (Ready) and 0 (Onboard) are human/feature-init gated and may
-    legitimately have no skill handoff — they never count as gaps.
+    NON_SKILL_CHECKPOINTS never count as gaps — they carry no skill handoff.
     """
     a = audit(feature_dir)
-    real_gaps = [g for g in a["gaps"] if g not in (0, 1.5)]
+    real_gaps = [g for g in a["gaps"] if g not in NON_SKILL_CHECKPOINTS]
     if real_gaps:
         return False, "checkpoints marked done with no complete handoff: %s" % real_gaps
-    if through is not None and through not in (0, 1.5) and through not in a["complete"]:
+    if through is not None and through not in NON_SKILL_CHECKPOINTS \
+            and through not in a["complete"]:
         return False, "checkpoint %s is not complete -- cannot advance past it" % through
     return True, "ok -- latest complete checkpoint: %s" % a["latest_complete"]
 

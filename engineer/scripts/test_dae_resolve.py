@@ -224,5 +224,18 @@ class TestResolution(unittest.TestCase):
             self.assertEqual(result["manifest"]["tracker"]["type"], "notion")
 
 
+class TestExtractFrontmatter(unittest.TestCase):
+    def test_extract(self):
+        block = dr.extract_frontmatter("---\nslug: alpha\n---\n\n# Heading\n")
+        self.assertIn("slug: alpha", block)
+        self.assertNotIn("# Heading", block)
+
+    def test_no_frontmatter(self):
+        self.assertIsNone(dr.extract_frontmatter("# Just a heading\n"))
+
+    def test_unterminated(self):
+        self.assertIsNone(dr.extract_frontmatter("---\nslug: alpha\n"))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

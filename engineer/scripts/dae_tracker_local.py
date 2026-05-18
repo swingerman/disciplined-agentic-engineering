@@ -38,17 +38,6 @@ FRONTMATTER_FIELDS = (
 )
 
 
-def extract_frontmatter(text):
-    """Return the YAML frontmatter block of a markdown file, or None."""
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        return None
-    for i in range(1, len(lines)):
-        if lines[i].strip() == "---":
-            return "\n".join(lines[1:i])
-    return None
-
-
 def read_checkpoint(feature_dir):
     """Pull the current checkpoint from progress.md, or None if absent."""
     path = os.path.join(feature_dir, "progress.md")
@@ -69,7 +58,7 @@ def tracked_feature(feature_dir):
     if not os.path.isfile(fm_path):
         return None
     with open(fm_path, "r", encoding="utf-8") as fh:
-        block = extract_frontmatter(fh.read())
+        block = dae_resolve.extract_frontmatter(fh.read())
     if block is None:
         return None
     try:
