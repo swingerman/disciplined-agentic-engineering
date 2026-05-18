@@ -1,11 +1,11 @@
 {
-  "name": "swingerman-atdd",
+  "name": "disciplined-agentic-engineering",
   "owner": {
     "name": "Miklos",
     "email": ""
   },
   "metadata": {
-    "description": "Acceptance Test Driven Development methodology plugin for Claude Code, inspired by Uncle Bob's approach",
+    "description": "Disciplined Agentic Engineering — a methodology kit for Claude Code: the engineer, atdd, and crap-analyzer plugins, grounded in Uncle Bob's acceptance-test approach",
     "version": "0.4.0"
   },
   "plugins": [
@@ -17,8 +17,8 @@
       "author": {
         "name": "Miklos"
       },
-      "homepage": "https://github.com/swingerman/atdd",
-      "repository": "https://github.com/swingerman/atdd",
+      "homepage": "https://github.com/swingerman/disciplined-agentic-engineering",
+      "repository": "https://github.com/swingerman/disciplined-agentic-engineering",
       "license": "MIT",
       "keywords": ["atdd", "acceptance-testing", "tdd", "given-when-then", "spec-driven-design", "uncle-bob", "bdd"],
       "category": "development-workflows",
@@ -32,8 +32,8 @@
       "author": {
         "name": "Miklos"
       },
-      "homepage": "https://github.com/swingerman/atdd",
-      "repository": "https://github.com/swingerman/atdd",
+      "homepage": "https://github.com/swingerman/disciplined-agentic-engineering",
+      "repository": "https://github.com/swingerman/disciplined-agentic-engineering",
       "license": "MIT",
       "keywords": ["dae", "disciplined-agentic-engineering", "methodology", "ai-development", "tdd", "atdd", "engineering"],
       "category": "development-workflows",
@@ -48,8 +48,8 @@
         "name": "Miklos Szanyi",
         "url": "https://github.com/swingerman"
       },
-      "homepage": "https://github.com/swingerman/atdd/tree/main/crap-analyzer",
-      "repository": "https://github.com/swingerman/atdd",
+      "homepage": "https://github.com/swingerman/disciplined-agentic-engineering/tree/main/crap-analyzer",
+      "repository": "https://github.com/swingerman/disciplined-agentic-engineering",
       "license": "MIT",
       "keywords": ["code-quality", "testing", "coverage", "refactoring", "cyclomatic-complexity", "crap"],
       "category": "code-quality",
