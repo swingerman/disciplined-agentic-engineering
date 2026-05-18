@@ -142,6 +142,12 @@ Now implement the feature using standard TDD:
 3. Refactor
 4. Repeat until the acceptance tests pass
 
+**Faster iteration with impact analysis:** if the project has
+`acceptance.impact_analysis: on`, the runner's impact-run mode (`dae_impact.py
+select`) runs only the scenarios your change affects — use it for the tight
+TDD loop. The **full** acceptance run still gates Step 5's completion: do not
+mark the feature done until every scenario passes a full run.
+
 **Both streams must pass:**
 - Unit tests verify internal correctness
 - Acceptance tests verify external behavior matches specs
