@@ -9,7 +9,7 @@ description: >-
   or mutant survival in the context of testing. It adds a third validation
   layer to the ATDD workflow: after acceptance tests verify WHAT and unit
   tests verify HOW, mutation testing verifies that tests actually catch bugs.
-version: 0.5.0
+version: 0.6.0
 ---
 
 # Mutation Testing
@@ -196,9 +196,9 @@ Mutation testing extends the existing two-stream approach:
 3. Verify test quality (REAL?)  ← mutation testing
 ```
 
-When using the `atdd-team` skill, mutation testing is Phase 6:
-assign to the **reviewer** or **implementer** after post-implementation
-review passes.
+When using the `atdd-team` skill, mutation testing is part of Phase 6
+(Verify & Harden), run by the **architect** — an agent whose `agent_id`
+is independent of the implementer and the refiner.
 
 ## Anti-Patterns
 
