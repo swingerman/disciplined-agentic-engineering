@@ -24,6 +24,11 @@ ended: <ISO timestamp>
 checkpoint: <number | null>          # the pipeline checkpoint addressed; null if off-pipeline
 artifacts:                           # paths produced/changed; [] if none
   - features/NNN-<slug>/<file>
+exit_criteria:                       # required on checkpoint-advancing skills
+  - criterion: <one Section 8 exit criterion>
+    verified_by: <tool | human | judgment>
+    met: <true | false>
+    evidence: <one line; for `tool`, the command + its output>
 findings_summary: <one line>          # optional
 human_action_needed: <yes | no>
 human_action_kind: <review | decision | approval | none>   # optional
@@ -56,7 +61,8 @@ What state was written. Optional section.
 ## Required vs optional
 
 - **Required frontmatter:** `skill`, `agent_id`, `started`, `ended`, `artifacts`, `human_action_needed`, `recommended_next`, `status`
-- **Optional frontmatter:** `agent_role`, `checkpoint`, `findings_summary`, `human_action_kind`, `tracker_update`
+- **Required on checkpoint-advancing skills:** `checkpoint`, `exit_criteria` — required when `checkpoint` is set; both omitted for off-pipeline skills (`checkpoint: null`).
+- **Optional frontmatter:** `agent_role`, `findings_summary`, `human_action_kind`, `tracker_update`
 - **Required body:** What I did, Artifacts produced, Human action needed?, Recommended next step
 - **Optional body:** Findings, Tracker update
 
@@ -66,5 +72,6 @@ What state was written. Optional section.
 - On crash/interruption, emit a partial summary with `status: interrupted` capturing what was done.
 - `agent_id` enforces verification independence (Principle 7): a verification handoff's `agent_id` must differ from the implementer's for the same feature.
 - Writing the summary triggers `progress-log`, which propagates it to `progress.md` and the tracker.
+- **Handoff-as-gate.** A checkpoint is not complete until its handoff exists, has `status: complete`, and asserts every `exit_criteria` entry `met: true`. A skill that advances checkpoint N+1 MUST verify checkpoint N is complete before starting — run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py <feature> --through N`. On a non-zero exit, stop and surface the gap to the human; do not proceed and do not auto-fix.
 
 Full schema: [DAE Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207), Section 5.
