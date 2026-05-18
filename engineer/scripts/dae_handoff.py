@@ -101,3 +101,63 @@ def _rec_complete(rec):
     if rec["status"] != "complete":
         return False
     return all(c["met"] is True for c in rec["exit_criteria"])
+
+
+def audit(feature_dir):
+    """Audit one feature folder. Returns a dict with complete/claimed/gaps."""
+    complete = set()
+    hdir = os.path.join(feature_dir, "handoffs")
+    if os.path.isdir(hdir):
+        for name in sorted(os.listdir(hdir)):
+            if not name.endswith(".md"):
+                continue
+            with open(os.path.join(hdir, name), encoding="utf-8") as f:
+                rec = parse_handoff(f.read())
+            if rec["checkpoint"] is not None and _rec_complete(rec):
+                complete.add(rec["checkpoint"])
+    claimed_done = set()
+    progress_path = os.path.join(feature_dir, "progress.md")
+    if os.path.isfile(progress_path):
+        with open(progress_path, encoding="utf-8") as f:
+            for cp, done in read_progress(f.read()).items():
+                if done:
+                    claimed_done.add(cp)
+    return {
+        "complete": complete,
+        "claimed_done": claimed_done,
+        "gaps": sorted(claimed_done - complete),
+        "latest_complete": max(complete) if complete else None,
+    }
+
+
+def gate(feature_dir, through=None):
+    """Return (ok, message). ok is False if a checkpoint <= `through` is not
+    backed by a complete handoff, or any claimed-done checkpoint has no handoff.
+
+    Checkpoint 1.5 (Ready) and 0 (Onboard) are human/feature-init gated and may
+    legitimately have no skill handoff — they never count as gaps.
+    """
+    a = audit(feature_dir)
+    real_gaps = [g for g in a["gaps"] if g not in (0, 1.5)]
+    if real_gaps:
+        return False, "checkpoints marked done with no complete handoff: %s" % real_gaps
+    if through is not None and through not in (0, 1.5) and through not in a["complete"]:
+        return False, "checkpoint %s is not complete -- cannot advance past it" % through
+    return True, "ok -- latest complete checkpoint: %s" % a["latest_complete"]
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help"):
+        print(__doc__)
+        return 0
+    feature_dir = argv[0]
+    through = None
+    if "--through" in argv:
+        through = _num(argv[argv.index("--through") + 1])
+    ok, msg = gate(feature_dir, through)
+    print(msg)
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

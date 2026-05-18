@@ -105,5 +105,61 @@ status: complete
         self.assertTrue(dh._rec_complete(dh.parse_handoff(legacy)))
 
 
+def _make_feature(handoffs, progress):
+    """Create a temp feature dir; return its path. Caller cleans up."""
+    d = tempfile.mkdtemp()
+    hd = os.path.join(d, "handoffs")
+    os.makedirs(hd)
+    for i, text in enumerate(handoffs):
+        with open(os.path.join(hd, "h%d.md" % i), "w", encoding="utf-8") as f:
+            f.write(text)
+    with open(os.path.join(d, "progress.md"), "w", encoding="utf-8") as f:
+        f.write(progress)
+    return d
+
+
+class TestAudit(unittest.TestCase):
+    def test_clean(self):
+        # progress claims 2 done; handoff covers 2 (1.5 is human/feature-init)
+        prog = PROGRESS.replace("| 1.5 | Ready | ✅ done", "| 1.5 | Ready | ⏳ pending")
+        d = _make_feature([HANDOFF_COMPLETE], prog)
+        try:
+            res = dh.audit(d)
+            self.assertEqual(res["gaps"], [])
+            self.assertEqual(res["latest_complete"], 2)
+        finally:
+            __import__("shutil").rmtree(d)
+
+    def test_gap_detected(self):
+        # progress claims 2 done but the only handoff has an unmet criterion
+        d = _make_feature([HANDOFF_UNMET], PROGRESS)
+        try:
+            res = dh.audit(d)
+            self.assertIn(2, res["gaps"])
+        finally:
+            __import__("shutil").rmtree(d)
+
+
+class TestGate(unittest.TestCase):
+    def test_through_passes(self):
+        prog = PROGRESS.replace("| 1.5 | Ready | ✅ done", "| 1.5 | Ready | ⏳ pending")
+        d = _make_feature([HANDOFF_COMPLETE], prog)
+        try:
+            ok, _ = dh.gate(d, through=2)
+            self.assertTrue(ok)
+        finally:
+            __import__("shutil").rmtree(d)
+
+    def test_through_fails_when_incomplete(self):
+        prog = PROGRESS.replace("| 1.5 | Ready | ✅ done", "| 1.5 | Ready | ⏳ pending")
+        d = _make_feature([HANDOFF_COMPLETE], prog)
+        try:
+            ok, msg = dh.gate(d, through=3)
+            self.assertFalse(ok)
+            self.assertIn("3", msg)
+        finally:
+            __import__("shutil").rmtree(d)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
