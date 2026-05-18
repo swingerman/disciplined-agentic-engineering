@@ -57,3 +57,33 @@ def build_map(ir, coverage_feed, built_at):
         "scenario_hashes": scenario_hashes(ir),
         "file_map": file_map,
     }
+
+
+def _is_source(path):
+    """True if `path` looks like a project source file (could host behavior)."""
+    return path.endswith(SOURCE_EXTENSIONS) and "/.build/" not in ("/" + path)
+
+
+def select_scenarios(current_ir, impact_map, changed_files):
+    """Scenario ids to run for `changed_files`, or the string 'ALL'.
+
+    Selected = new/spec-changed scenarios (hash differs from the map) + every
+    scenario mapped to a changed file. A changed source file absent from the
+    map cannot be proven safe -> 'ALL'. A missing map -> 'ALL'.
+    """
+    if impact_map is None:
+        return "ALL"
+    current = scenario_hashes(current_ir)
+    recorded = impact_map.get("scenario_hashes", {})
+    file_map = impact_map.get("file_map", {})
+
+    selected = set()
+    for sid, h in current.items():
+        if recorded.get(sid) != h:        # new or spec-changed
+            selected.add(sid)
+    for f in changed_files:
+        if f in file_map:
+            selected.update(file_map[f])
+        elif _is_source(f):               # unmapped source -> not provably safe
+            return "ALL"
+    return sorted(selected)

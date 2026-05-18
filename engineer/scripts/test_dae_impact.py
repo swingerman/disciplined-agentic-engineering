@@ -50,5 +50,47 @@ class TestBuildMap(unittest.TestCase):
                          {"valid login", "bad password"})
 
 
+class TestSelect(unittest.TestCase):
+    def setUp(self):
+        self.m = di.build_map(IR_V1, FEED, "2026-05-18T1530")
+
+    def test_changed_file_selects_its_scenarios(self):
+        sel = di.select_scenarios(IR_V1, self.m, ["src/user.py"])
+        self.assertEqual(sel, ["valid login"])
+
+    def test_shared_file_selects_all_its_scenarios(self):
+        sel = di.select_scenarios(IR_V1, self.m, ["src/auth.py"])
+        self.assertEqual(sel, ["bad password", "valid login"])
+
+    def test_spec_changed_scenario_selected_without_file_change(self):
+        ir2 = {"name": "Login", "scenarios": [
+            {"name": "valid login",
+             "steps": [{"keyword": "Given", "text": "a DIFFERENT user"}]},
+            {"name": "bad password",
+             "steps": [{"keyword": "When", "text": "wrong pw"}]},
+        ]}
+        sel = di.select_scenarios(ir2, self.m, [])
+        self.assertEqual(sel, ["valid login"])
+
+    def test_new_scenario_selected(self):
+        ir2 = {"name": "Login", "scenarios": IR_V1["scenarios"] + [
+            {"name": "locked out", "steps": [{"keyword": "Given", "text": "x"}]},
+        ]}
+        sel = di.select_scenarios(ir2, self.m, [])
+        self.assertEqual(sel, ["locked out"])
+
+    def test_unmapped_source_file_returns_all(self):
+        sel = di.select_scenarios(IR_V1, self.m, ["src/brandnew.py"])
+        self.assertEqual(sel, "ALL")
+
+    def test_non_source_change_ignored(self):
+        sel = di.select_scenarios(IR_V1, self.m, ["README.md"])
+        self.assertEqual(sel, [])
+
+    def test_missing_map_returns_all(self):
+        self.assertEqual(di.select_scenarios(IR_V1, None, ["src/user.py"]),
+                         "ALL")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
