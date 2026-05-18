@@ -262,5 +262,21 @@ class TestArchitectureValidation(unittest.TestCase):
         self.assertEqual([e for e in errors if "architecture" in e], [])
 
 
+class TestImpactAnalysisFlag(unittest.TestCase):
+    def test_bad_value_rejected(self):
+        m = {"methodology_version": "0.2",
+             "roadmap": {"type": "local"}, "tracker": {"type": "local"},
+             "acceptance": {"impact_analysis": "maybe"}}
+        errors, _ = dr.validate_manifest(m)
+        self.assertTrue(any("impact_analysis" in e for e in errors))
+
+    def test_valid_value_ok(self):
+        m = {"methodology_version": "0.2",
+             "roadmap": {"type": "local"}, "tracker": {"type": "local"},
+             "acceptance": {"impact_analysis": "on"}}
+        errors, _ = dr.validate_manifest(m)
+        self.assertEqual([e for e in errors if "impact_analysis" in e], [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

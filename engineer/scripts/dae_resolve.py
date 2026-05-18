@@ -41,6 +41,7 @@ MUTATION_SCOPES = {"changed_files", "changed_module", "full"}
 MUTATION_CADENCES = {"per_pr", "per_merge", "per_release", "on_demand"}
 MUTATION_DEFAULTS = {"required", "opt_in"}
 AGENTIC_SUMMARY_FORMATS = {"markdown"}
+IMPACT_ANALYSIS_VALUES = {"on", "off"}
 
 
 class ManifestError(Exception):
@@ -275,6 +276,8 @@ def validate_manifest(manifest):
     _check_enum(errors, manifest, "mutation", "default_per_feature", MUTATION_DEFAULTS)
     _check_enum(errors, manifest, "autonomy", "default_level", AUTONOMY_LEVELS)
     _check_enum(errors, manifest, "agentic_summary", "format", AGENTIC_SUMMARY_FORMATS)
+    _check_enum(errors, manifest, "acceptance", "impact_analysis",
+                IMPACT_ANALYSIS_VALUES)
 
     autonomy = manifest.get("autonomy")
     if isinstance(autonomy, dict):
