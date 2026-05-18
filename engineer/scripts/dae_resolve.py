@@ -234,6 +234,22 @@ def _check_enum(errors, manifest, section, key, allowed):
                       % (section, key, block[key], sorted(allowed)))
 
 
+def _validate_architecture(errors, manifest):
+    """Light structural validation of the optional `architecture:` section."""
+    arch = manifest.get("architecture")
+    if not isinstance(arch, dict):
+        return
+    for i, layer in enumerate(arch.get("layers") or []):
+        if not isinstance(layer, dict) or not layer.get("name") \
+                or not layer.get("paths"):
+            errors.append("architecture.layers[%d] must have 'name' and 'paths'" % i)
+    fs = arch.get("file_size")
+    if isinstance(fs, dict) and "max_lines" in fs:
+        ml = fs["max_lines"]
+        if not isinstance(ml, int) or ml <= 0:
+            errors.append("architecture.file_size.max_lines must be a positive int")
+
+
 def validate_manifest(manifest):
     """Validate against the locked schema. Returns (errors, warnings)."""
     errors, warnings = [], []
@@ -284,6 +300,8 @@ def validate_manifest(manifest):
         if not isinstance(roles, list) or "verifier" not in roles:
             errors.append("verification.enforce_independence is true — "
                           "team.default_roles must include 'verifier'")
+
+    _validate_architecture(errors, manifest)
 
     return errors, warnings
 

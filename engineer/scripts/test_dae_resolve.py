@@ -237,5 +237,30 @@ class TestExtractFrontmatter(unittest.TestCase):
         self.assertIsNone(dr.extract_frontmatter("---\nslug: alpha\n"))
 
 
+class TestArchitectureValidation(unittest.TestCase):
+    def test_layer_missing_name(self):
+        m = {"methodology_version": "0.2",
+             "roadmap": {"type": "local"}, "tracker": {"type": "local"},
+             "architecture": {"layers": [{"paths": ["src/**"]}]}}
+        errors, _ = dr.validate_manifest(m)
+        self.assertTrue(any("architecture.layers" in e for e in errors))
+
+    def test_bad_file_size(self):
+        m = {"methodology_version": "0.2",
+             "roadmap": {"type": "local"}, "tracker": {"type": "local"},
+             "architecture": {"file_size": {"max_lines": -3}}}
+        errors, _ = dr.validate_manifest(m)
+        self.assertTrue(any("file_size" in e for e in errors))
+
+    def test_valid_architecture_ok(self):
+        m = {"methodology_version": "0.2",
+             "roadmap": {"type": "local"}, "tracker": {"type": "local"},
+             "architecture": {
+                 "layers": [{"name": "domain", "paths": ["src/domain/**"]}],
+                 "file_size": {"max_lines": 400}}}
+        errors, _ = dr.validate_manifest(m)
+        self.assertEqual([e for e in errors if "architecture" in e], [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
