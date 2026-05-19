@@ -32,6 +32,9 @@ Analyze surviving mutants and write tests to kill them.
 5. After writing all new tests, re-run mutation testing (`/atdd:mutate`) to confirm:
    - Previously surviving mutants are now killed
    - No regressions (previously killed mutants still killed)
+   - This re-run is differential — adding a test changes the covering tests'
+     hash, so only the affected function re-mutates; the rest are reused from
+     the manifest
 
 6. Report the updated mutation score and remaining survivors.
 
