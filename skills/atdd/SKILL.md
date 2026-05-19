@@ -32,6 +32,11 @@ Both must pass. Neither alone is sufficient.
 
 Follow these steps strictly, in order. Do not skip steps.
 
+Before Step 1, create one TodoWrite todo per step of this workflow (Steps 1–7),
+all at once — the full list up front, as a roadmap. Flip each todo to
+`in_progress` / `completed` as you go. See
+`${CLAUDE_PLUGIN_ROOT}/references/progress-indicator.md`.
+
 ### Step 1: Understand the Feature
 
 Before writing anything, understand what is being built:

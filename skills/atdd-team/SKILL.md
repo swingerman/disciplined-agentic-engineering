@@ -83,6 +83,11 @@ The team lead never delegates approval — specs are the team lead's contract.
 Execute phases strictly in order. Each phase spawns a fresh agent, ends with a
 durable handoff, and is gated on the prior checkpoint's exit criteria.
 
+Before Phase 1, create one TodoWrite todo per phase of this workflow
+(Phases 1–6), all at once — the full list up front, as a roadmap. Flip each
+todo to `in_progress` / `completed` as you go. See
+`${CLAUDE_PLUGIN_ROOT}/references/progress-indicator.md`.
+
 ### Phase 1 — Spec Writing
 
 **Assign to:** a fresh `spec-writer` agent.

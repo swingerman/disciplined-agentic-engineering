@@ -106,6 +106,11 @@ For install commands, configuration, and CLI reference, see
 
 ## Workflow
 
+Before Step 1, create one TodoWrite todo per step of this workflow (Steps 1–6),
+all at once — the full list up front, as a roadmap. Flip each todo to
+`in_progress` / `completed` as you go. See
+`${CLAUDE_PLUGIN_ROOT}/references/progress-indicator.md`.
+
 ### Step 1: Verify Prerequisites
 
 Before running mutation testing, confirm:
