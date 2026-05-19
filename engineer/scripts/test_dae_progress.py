@@ -46,5 +46,30 @@ class ParseCurrentHeaderTests(unittest.TestCase):
             dae_progress.parse_current_header("# progress\n\nno header here\n"))
 
 
+class RenderBreadcrumbTests(unittest.TestCase):
+    def test_marks_done_current_and_pending(self):
+        out = dae_progress.render_breadcrumb(
+            "015-image-formats", {0, 1.5, 2}, 3, "CP3 Spec — 2/4 criteria met")
+        self.assertIn("DAE ▸ 015-image-formats", out)
+        self.assertIn("✓0 Onboard", out)
+        self.assertIn("✓1.5 Ready", out)
+        self.assertIn("✓2 ACs", out)
+        self.assertIn("▶3 Spec", out)
+        self.assertIn("·4 Plan", out)
+        self.assertIn("·5 Implement", out)
+        self.assertIn("·8 Harden", out)
+        self.assertIn("CP3 Spec — 2/4 criteria met", out)
+
+    def test_renders_all_nine_stops(self):
+        out = dae_progress.render_breadcrumb("x", set(), None, "")
+        for stage in ("Onboard", "Ready", "ACs", "Spec", "Plan",
+                      "Implement", "Refine", "Verify", "Harden"):
+            self.assertIn(stage, out)
+
+    def test_empty_detail_is_omitted(self):
+        out = dae_progress.render_breadcrumb("x", set(), None, "")
+        self.assertEqual(len(out.splitlines()), 2)
+
+
 if __name__ == "__main__":
     unittest.main()
