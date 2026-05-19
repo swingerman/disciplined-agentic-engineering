@@ -61,13 +61,16 @@ mutation at a time, runs targeted tests, and reports survivors.
 - **No external dependencies** — the tool lives in the project
 - **AST-level precision** — understands the language's constructs natively
 
-### Architecture (3 modules)
+### Architecture (4 modules)
 
 1. **Mutations** — rules table (e.g., `+` → `-`, `true` → `false`,
    `>=` → `>`) plus matching logic that walks the AST/form tree
 2. **Runner** — source-to-test mapping, test execution, pass/fail capture
 3. **Core** — orchestration: read source → discover sites → apply one
    at a time → run tests → restore original → report
+4. **Hashing/Selection** — hash each function (AST-level) and its covering
+   tests; call `dae_mutmap.py` to mutate only changed functions and to update
+   the manifest after the run. See the Differential Mutation Testing section.
 
 ### Core Mutation Categories
 
@@ -104,6 +107,23 @@ established mutation framework as a secondary option:
 For install commands, configuration, and CLI reference, see
 `references/frameworks.md`.
 
+## Differential Mutation Testing
+
+Mutation testing is slow — re-running it after a small change re-mutates every
+function. **Differential mutation testing** re-mutates only the functions whose
+code or covering tests changed, reusing cached results for the rest.
+
+- **Custom-tool path** — the Hashing/Selection module hashes each function and
+  its covering tests and calls `dae_mutmap.py` (`select` before the run,
+  `update` after). Results live in a **committed** `mutation-manifest.json`
+  beside the tool, so the saving reaches CI and every clone. A function is
+  re-mutated when its code, its covering tests, or the mutation operator set
+  changed. See `${CLAUDE_PLUGIN_ROOT}/references/differential-mutation.md`.
+- **Framework path** — Stryker (`--incremental`), PIT (`withHistory`), and
+  mutmut have native incremental modes; enable the framework's incremental flag
+  and commit its history file. Do not build a separate manifest for the
+  framework path.
+
 ## Workflow
 
 Before Step 1, create one TodoWrite todo per step of this workflow (Steps 1–6),
@@ -124,18 +144,24 @@ Before running mutation testing, confirm:
 If no mutation tool is configured:
 
 1. Detect the project language from source files and build config
-2. **Preferred:** Build a custom mutation tool following the 3-module
-   architecture (mutations, runner, core). Use TDD to build the tool itself.
+2. **Preferred:** Build a custom mutation tool following the 4-module
+   architecture (mutations, runner, core, hashing/selection). Use TDD to build
+   the tool itself.
 3. **Alternative:** Install an existing framework if rapid setup is needed
 4. Configure to target source directories and exclude test/spec/generated files
 5. Exclude `.build/` (generated tests and IR) and the `acceptance/` pipeline code from mutation
+6. Enable differential mutation testing — the custom tool's hashing/selection
+   module, or the framework's native incremental flag (see the Differential
+   Mutation Testing section)
 
 **Important:** Configure mutation testing to target **source code only**.
 Never mutate test files, spec files, or generated pipeline code.
 
 ### Step 3: Run Mutations
 
-Execute the mutation framework and collect results:
+On the custom-tool path, run `dae_mutmap.py select` first and mutate only the
+functions it returns — or all of them when it returns `ALL`. On the framework
+path, the incremental flag handles this. Then execute and collect results:
 
 - Total mutants generated
 - Mutants killed (tests caught the bug)
@@ -164,7 +190,10 @@ For each real survivor:
 
 ### Step 6: Report
 
-Present a summary:
+On the custom-tool path, run `dae_mutmap.py update` to refresh
+`mutation-manifest.json`. The report combines this run's fresh results with the
+manifest's cached entries for unchanged functions — mark the cached ones
+("unchanged since `last_mutated`"). Present a summary:
 
 ```
 Mutation Testing Report
