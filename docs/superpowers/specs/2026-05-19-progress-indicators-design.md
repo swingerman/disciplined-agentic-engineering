@@ -95,9 +95,12 @@ is "you are here." Placement:
 - Skills with a `dae_handoff.py` entry gate (`discover-acs`, `atdd`, `plan`,
   `refine`, `arch-check`) — call the breadcrumb in **Step 0**, immediately after
   the entry gate passes.
-- Skills with no entry gate (`onboard` at CP0, `feature-init` at CP1.5) — call
-  it at the start of the workflow. `feature-init` may have no `progress.md` yet;
-  graceful degradation covers that.
+- `feature-init` (CP1.5) has no entry gate — call it at the start of the
+  workflow. It may have no `progress.md` yet; graceful degradation renders the
+  pipeline-ahead view (every stop `·`, a "not yet started" note).
+- `onboard` (CP0) is **project-scope** — it has no feature folder, so a
+  feature-scoped breadcrumb does not apply. `onboard` gets the in-skill TodoWrite
+  tracker (Indicator 2) only, no breadcrumb.
 
 The skill end needs no breadcrumb: the handoff summary plus `progress-log`
 already mark the advance, and the *next* skill's Step 0 breadcrumb reflects it.
@@ -173,12 +176,15 @@ the file instead of inlining the convention.
 
 ## Skills touched
 
-**Engineer plugin — 7 checkpoint skills** get a one-line Step 0 addition
-pointing to `engineer/references/progress-indicator.md` (breadcrumb + TodoWrite
-convention):
+**Engineer plugin.** Six feature-scoped checkpoint skills get the full Step 0
+addition — breadcrumb *and* TodoWrite tracker — pointing to
+`engineer/references/progress-indicator.md`:
 
-`onboard` (CP0), `feature-init` (CP1.5), `discover-acs` (CP2), `atdd` (CP3),
-`plan` (CP4), `refine` (CP6), `arch-check` (CP7).
+`feature-init` (CP1.5), `discover-acs` (CP2), `atdd` (CP3), `plan` (CP4),
+`refine` (CP6), `arch-check` (CP7).
+
+`onboard` (CP0) is project-scope — no feature folder — so it gets the TodoWrite
+step tracker only, no breadcrumb.
 
 `reorient` gets a one-line change to call `dae_progress.py` for its breadcrumb
 line. Advisory and cross-cutting engineer skills (`next`, `clarify`,
@@ -216,8 +222,8 @@ New feature in both plugins → minor bump. `engineer` 0.6.0 → 0.7.0, `atdd`
    CURRENT header) first, then breadcrumb rendering against the canonical list,
    then graceful degradation, then the CLI.
 2. **`engineer/references/progress-indicator.md`** — the engineer convention.
-3. **Wire Step 0** into the 7 engineer checkpoint skills; update `reorient` to
-   call the script.
+3. **Wire Step 0** into the 6 feature-scoped engineer checkpoint skills (and the
+   TodoWrite tracker into `onboard`); update `reorient` to call the script.
 4. **`atdd/references/progress-indicator.md`** — the atdd convention.
 5. **Wire Step 0** into the 3 atdd skills.
 6. **Version bumps** — both `plugin.json` files and the `marketplace.json`
