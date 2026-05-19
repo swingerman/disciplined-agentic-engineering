@@ -46,7 +46,10 @@ Read, read-only, in this order:
    and what the agent may and may not decide. Counters invented constraints.
 2. **Current checkpoint + exit criteria** — the Checkpoint Exit Contract
    (Foundation Design Section 8) for the checkpoint `progress.md` shows in
-   progress: its goal, its exit criteria, and which are already met.
+   progress: its goal, its exit criteria, and which are already met. Run
+   `${CLAUDE_PLUGIN_ROOT}/scripts/dae_progress.py <feature-dir>` and show its
+   breadcrumb — the same pipeline-position line the checkpoint skills surface
+   at Step 0.
 3. **Non-negotiables** — verification independence and charter-mandated
    mutation: steps that must not be skipped regardless of cost. The cost of a
    step is never a reason to skip it.

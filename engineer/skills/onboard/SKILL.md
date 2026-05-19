@@ -31,6 +31,12 @@ Pre-filling from an existing codebase is encouraged. **Rubber-stamping is not.**
 
 ## Workflow (full onboard)
 
+Before the steps below, create one TodoWrite todo per workflow step (the full
+list up front, as a roadmap) — see
+`${CLAUDE_PLUGIN_ROOT}/references/progress-indicator.md`, Indicator 2. `onboard`
+is project-scope and has no feature folder, so it does not show the pipeline
+breadcrumb.
+
 1. **Repo topology** — ask single- vs multi-repo. Set `methodology_root` (and `repos[]` for multi-repo).
 2. **Draft the charter, get sign-off** — draft `CHARTER.md`'s 7 mandatory sections (methodology, architecture, conventions, scope, agent team, quality stance, autonomy stance). For an existing codebase, pre-fill what's inferable from the repo. Then present it and get the human's explicit confirmation — section by section for the judgment-heavy ones (scope, quality stance, autonomy stance + path overrides). Do not proceed to Step 3 until the charter is signed off.
 3. **Create the manifest** — fill `.engineer/manifest.yml` (paths, roadmap/tracker, team, repos, quality thresholds, mutation, verification, autonomy, agentic_summary).

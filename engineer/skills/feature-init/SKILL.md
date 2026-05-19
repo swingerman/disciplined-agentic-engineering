@@ -20,6 +20,14 @@ Detect from-discuss vs standalone by whether a `feature_intake` payload is prese
 
 ## Workflow
 
+Before the steps below, create one TodoWrite todo per workflow step (the full
+list up front, as a roadmap). After Step 6 creates the feature folder, show the
+**pipeline breadcrumb**: run
+`${CLAUDE_PLUGIN_ROOT}/scripts/dae_progress.py <feature-dir>` and present its
+output — for a just-initialized feature (no `progress.md` yet) it renders the
+pipeline ahead. The breadcrumb is advisory and never blocks. See
+`${CLAUDE_PLUGIN_ROOT}/references/progress-indicator.md`.
+
 1. **Resolve** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`). Exit 2 (no manifest) → point to `/engineer.onboard`.
 2. **Gather intake** — from-discuss: read the payload. Standalone: interview — required fields one per turn (`title`, `slug`, `outcome`, `source_links`, `status`, `autonomy_level` if `status` is `ready`/`in-progress`/`done`, `scope`), optional fields (`target`, `owner`, `area`, `relevant_adrs`, `tags`, `size`) bundled at the end. Onboarding intake: reverse-engineer the fields from the existing spec / branch / commits; set `status` to `in-progress` or `done` per how complete the work is.
 3. **Validate** — slug format (kebab-case, lowercase, ASCII, ≤50, leading letter); `autonomy_level` ∈ `manifest.autonomy.allowed_levels` and within path overrides; any `status` other than `parked` requires `autonomy_level`; `relevant_adrs` exist. Slug collision: if existing feature is `parked` → offer promote-from-parked (flip status, keep handoffs); if `ready`/`in-progress` → redirect to `feature-edit`; if `done` → reject.
