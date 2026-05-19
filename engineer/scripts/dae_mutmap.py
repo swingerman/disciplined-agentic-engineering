@@ -52,3 +52,79 @@ def select(manifest, hashes_feed, full=False):
                 or prev.get("tests_hash") != h.get("tests_hash")):
             selected.append(fid)
     return sorted(selected)
+
+
+def _carry_triage(old_survivors, new_survivors):
+    """Carry the `equivalent` flag forward for survivors that match a prior
+    survivor by (line, mutation). An equivalent flag already set in
+    new_survivors is left untouched; unmatched survivors default to False.
+    """
+    prior = {(s.get("line"), s.get("mutation")): s.get("equivalent")
+             for s in old_survivors}
+    out = []
+    for s in new_survivors:
+        s = dict(s)
+        if s.get("equivalent") is None:
+            carried = prior.get((s.get("line"), s.get("mutation")))
+            s["equivalent"] = bool(carried) if carried is not None else False
+        out.append(s)
+    return out
+
+
+def update(manifest, hashes_feed, results_feed):
+    """Build the new manifest: fresh entries for mutated functions, cached
+    entries kept for skipped ones, orphaned IDs (renamed/deleted) pruned.
+
+    results_feed - {"functions": {id: {"last_mutated": .., "mutants_total": ..,
+                   "mutants_killed": .., "survivors": [..]}}} for functions
+                   actually mutated this run.
+    """
+    old_fns = (manifest or {}).get("functions", {})
+    results = results_feed.get("functions", {})
+    new_fns = {}
+    for fid, h in hashes_feed.get("functions", {}).items():
+        if fid in results:
+            r = results[fid]
+            new_fns[fid] = {
+                "code_hash": h.get("code_hash"),
+                "tests_hash": h.get("tests_hash"),
+                "last_mutated": r.get("last_mutated"),
+                "mutants_total": r.get("mutants_total"),
+                "mutants_killed": r.get("mutants_killed"),
+                "survivors": _carry_triage(
+                    (old_fns.get(fid) or {}).get("survivors", []),
+                    r.get("survivors", [])),
+            }
+        elif fid in old_fns:
+            new_fns[fid] = dict(old_fns[fid])  # skipped — keep a copy of the cached entry
+        # a function new this run but absent from results is omitted; the next
+        # select picks it up (it has no cached result to report yet).
+    return {
+        "manifest_version": MANIFEST_VERSION,
+        "rules_hash": hashes_feed.get("rules_hash"),
+        "functions": new_fns,
+    }
+
+
+def serialize(manifest):
+    """Serialize the manifest deterministically — function IDs sorted, dict
+    keys sorted, and survivors within an entry sorted by (line, mutation) — so
+    independent updates merge without conflict.
+    """
+    lines = ["{",
+             '  "manifest_version": %s,'
+             % json.dumps(manifest.get("manifest_version", MANIFEST_VERSION)),
+             '  "rules_hash": %s,' % json.dumps(manifest.get("rules_hash")),
+             '  "functions": {']
+    ids = sorted(manifest.get("functions", {}))
+    for i, fid in enumerate(ids):
+        entry = dict(manifest["functions"][fid])
+        if "survivors" in entry:
+            entry["survivors"] = sorted(
+                entry["survivors"],
+                key=lambda s: (s.get("line") or 0, s.get("mutation") or ""))
+        text = json.dumps(entry, sort_keys=True, separators=(", ", ": "))
+        tail = "," if i < len(ids) - 1 else ""
+        lines.append("    %s: %s%s" % (json.dumps(fid), text, tail))
+    lines += ["  }", "}"]
+    return "\n".join(lines) + "\n"
