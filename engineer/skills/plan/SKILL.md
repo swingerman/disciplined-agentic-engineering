@@ -21,6 +21,13 @@ If `spec.md` is missing, warn — planning should follow spec formalization — 
 
 **Step 0 — Entry gate.** Before starting, verify the prior checkpoint is complete: run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py <feature-dir> --through 3`. On a non-zero exit, **stop** and surface the gap to the human — do not proceed.
 
+After the gate passes, show the **pipeline breadcrumb**: run
+`${CLAUDE_PLUGIN_ROOT}/scripts/dae_progress.py <feature-dir>` and present its
+output to the human — it shows where this checkpoint sits in the DAE pipeline.
+The breadcrumb is advisory: a non-zero exit or a missing `progress.md` never
+blocks the skill. Then create one TodoWrite todo per workflow step below. See
+`${CLAUDE_PLUGIN_ROOT}/references/progress-indicator.md`.
+
 1. **Resolve + load** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); load `feature.md`, `acs.md`, `spec.md`, `CHARTER.md`.
 2. **Propose the architecture** — draft only the Architecture section (components, data flow, where new code lives, coupling, key decisions + rationale + alternatives). Present it; iterate until the human confirms. Do not draft the rest until then.
 3. **Draft the rest** — once confirmed, draft the remaining sections; the human reviews the finished file.

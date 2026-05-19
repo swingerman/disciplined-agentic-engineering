@@ -33,6 +33,13 @@ Verify the prior checkpoint is complete: run
 `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py <feature-dir> --through 2`. On a
 non-zero exit, **stop** and surface the gap to the human.
 
+After the gate passes, show the **pipeline breadcrumb**: run
+`${CLAUDE_PLUGIN_ROOT}/scripts/dae_progress.py <feature-dir>` and present its
+output to the human — it shows where this checkpoint sits in the DAE pipeline.
+The breadcrumb is advisory: a non-zero exit or a missing `progress.md` never
+blocks the skill. Then create one TodoWrite todo per workflow step below. See
+`${CLAUDE_PLUGIN_ROOT}/references/progress-indicator.md`.
+
 ### Step 1 — Run the acceptance workflow
 
 Invoke the `atdd:atdd` skill, scoped to this feature: write the feature's

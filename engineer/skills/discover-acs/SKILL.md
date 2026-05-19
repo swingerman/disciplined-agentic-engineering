@@ -23,6 +23,13 @@ On a feature with `autonomy_level` set and `status` of `ready` (greenfield) or `
 
 **Step 0 — Entry gate.** Before starting, verify the prior checkpoint is complete: run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py <feature-dir> --through 1.5`. On a non-zero exit, **stop** and surface the gap to the human — do not proceed.
 
+After the gate passes, show the **pipeline breadcrumb**: run
+`${CLAUDE_PLUGIN_ROOT}/scripts/dae_progress.py <feature-dir>` and present its
+output to the human — it shows where this checkpoint sits in the DAE pipeline.
+The breadcrumb is advisory: a non-zero exit or a missing `progress.md` never
+blocks the skill. Then create one TodoWrite todo per workflow step below. See
+`${CLAUDE_PLUGIN_ROOT}/references/progress-indicator.md`.
+
 1. **Resolve + validate** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); locate the feature. Reject if not found, if `status: parked` (→ `discuss` to promote first), or if `acs.md` already exists with content. Pick the mode: existing spec/code present → reverse-engineer; else → greenfield.
 2. **Load** — `feature.md`, `CHARTER.md`, `manifest.yml`, prior `handoffs/`. Reverse-engineer mode: also load the existing spec / design doc / relevant code.
 3. **Discover the ACs:**
