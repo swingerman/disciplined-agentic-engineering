@@ -82,3 +82,40 @@ def render_breadcrumb(feature_name, done, current_cp, detail):
     if detail:
         lines.append(detail)
     return "\n".join(lines)
+
+
+def breadcrumb(feature_dir):
+    """Build the breadcrumb for a feature folder. Never raises on bad input."""
+    feature_name = os.path.basename(os.path.normpath(feature_dir))
+    progress_path = os.path.join(feature_dir, "progress.md")
+    if not os.path.isfile(progress_path):
+        return render_breadcrumb(
+            feature_name, set(), None,
+            "(progress.md not found — feature not yet started)")
+    with open(progress_path, encoding="utf-8") as f:
+        text = f.read()
+    done = {cp for cp, is_done in dae_handoff.read_progress(text).items()
+            if is_done}
+    header = parse_current_header(text)
+    if header is None:
+        return render_breadcrumb(
+            feature_name, done, None, "(no CURRENT header in progress.md)")
+    detail = "CP%s %s — %d/%d criteria met" % (
+        header["cp"], header["stage"], header["met"], header["total"])
+    if header["next"]:
+        detail += " · NEXT: %s" % header["next"]
+    if header["blocked"] and header["blocked"].lower() != "none":
+        detail += " · BLOCKED: %s" % header["blocked"]
+    return render_breadcrumb(feature_name, done, header["cp"], detail)
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help"):
+        print(__doc__)
+        return 0
+    print(breadcrumb(argv[0]))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

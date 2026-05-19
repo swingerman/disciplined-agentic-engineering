@@ -71,5 +71,62 @@ class RenderBreadcrumbTests(unittest.TestCase):
         self.assertEqual(len(out.splitlines()), 2)
 
 
+def _write_feature(parent, name, contents):
+    """Create parent/name/ and, if contents is not None, parent/name/progress.md."""
+    feat = os.path.join(parent, name)
+    os.makedirs(feat)
+    if contents is not None:
+        with open(os.path.join(feat, "progress.md"), "w", encoding="utf-8") as f:
+            f.write(contents)
+    return feat
+
+
+class BreadcrumbTests(unittest.TestCase):
+    def test_full_progress_file(self):
+        with tempfile.TemporaryDirectory() as d:
+            feat = _write_feature(d, "015-image-formats", CURRENT + "\n" + TABLE)
+            out = dae_progress.breadcrumb(feat)
+        self.assertIn("DAE ▸ 015-image-formats", out)
+        self.assertIn("✓2 ACs", out)
+        self.assertIn("▶3 Spec", out)
+        self.assertIn("NEXT: write spec.md", out)
+        self.assertNotIn("BLOCKED", out)  # blocked: none is omitted
+
+    def test_blocked_reason_shown(self):
+        header = "> ▶ CP4 Plan — 1/3 criteria met | NEXT: revise | BLOCKED: awaiting ADR-012\n"
+        with tempfile.TemporaryDirectory() as d:
+            feat = _write_feature(d, "042-export", header + "\n" + TABLE)
+            out = dae_progress.breadcrumb(feat)
+        self.assertIn("BLOCKED: awaiting ADR-012", out)
+
+    def test_missing_progress_degrades(self):
+        with tempfile.TemporaryDirectory() as d:
+            feat = _write_feature(d, "099-new", None)
+            out = dae_progress.breadcrumb(feat)
+        self.assertIn("099-new", out)
+        self.assertIn("not yet started", out)
+        self.assertIn("·0 Onboard", out)
+
+    def test_no_header_degrades(self):
+        with tempfile.TemporaryDirectory() as d:
+            feat = _write_feature(d, "022-x", TABLE)  # table only, no header
+            out = dae_progress.breadcrumb(feat)
+        self.assertIn("✓2 ACs", out)
+        self.assertIn("no CURRENT header", out)
+
+
+class MainTests(unittest.TestCase):
+    def test_help_returns_zero(self):
+        self.assertEqual(dae_progress.main(["--help"]), 0)
+
+    def test_no_args_returns_zero(self):
+        self.assertEqual(dae_progress.main([]), 0)
+
+    def test_run_on_feature_returns_zero(self):
+        with tempfile.TemporaryDirectory() as d:
+            feat = _write_feature(d, "015-x", CURRENT + "\n" + TABLE)
+            self.assertEqual(dae_progress.main([feat]), 0)
+
+
 if __name__ == "__main__":
     unittest.main()
