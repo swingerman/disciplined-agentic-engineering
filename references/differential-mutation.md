@@ -62,8 +62,9 @@ logic (generic). Run `dae_mutmap.py --help` for the CLI.
   per line, or the token `ALL`. `--full` forces `ALL`.
 - **`update <manifest> <hashes-feed> <results-feed>`** — rewrites the manifest:
   fresh entries for re-mutated functions, cached entries for skipped ones,
-  orphaned IDs pruned. Serialization is deterministic — IDs sorted, one function
-  per line — so independent updates merge without conflict.
+  orphaned IDs pruned. Serialization is deterministic — function IDs sorted,
+  dict keys sorted, survivors within an entry sorted by `(line, mutation)`, one
+  function per line — so independent updates merge without conflict.
 
 The **hashes feed** is `{"rules_hash": "...", "functions": {id: {"code_hash":
 ..., "tests_hash": ...}}}` for every current function. The **results feed** is
