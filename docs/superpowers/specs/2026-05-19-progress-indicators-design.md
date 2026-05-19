@@ -169,10 +169,12 @@ the file instead of inlining the convention.
   checkpoint list, the breadcrumb contract (call `dae_progress.py` at Step 0,
   show the output verbatim, advisory/never-blocking), and the TodoWrite step
   convention.
-- **`atdd/references/progress-indicator.md`** (new) — the atdd-scoped sibling.
-  The atdd plugin currently has no `references/` directory; this creates it. It
-  defines the TodoWrite roadmap-and-step convention only (no breadcrumb, no
-  script). It is a separate file with genuinely different content, not a copy.
+- **`references/progress-indicator.md`** (new) — the atdd-scoped sibling. The
+  atdd plugin's root is the repo root (`marketplace.json` source `"./"`), so its
+  references directory is `<repo-root>/references/`, which does not exist yet —
+  this creates it. It defines the TodoWrite roadmap-and-step convention only (no
+  breadcrumb, no script). It is a separate file with genuinely different
+  content, not a copy.
 
 ## Skills touched
 

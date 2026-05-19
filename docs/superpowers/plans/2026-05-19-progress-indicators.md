@@ -17,7 +17,7 @@
 - **Create** `engineer/scripts/dae_progress.py` — breadcrumb renderer. Parses `progress.md`, renders the breadcrumb against the canonical checkpoint list. Reuses `dae_handoff.read_progress` for the Checkpoints table.
 - **Create** `engineer/scripts/test_dae_progress.py` — its `unittest` suite.
 - **Create** `engineer/references/progress-indicator.md` — engineer-plugin convention (breadcrumb + TodoWrite).
-- **Create** `atdd/references/progress-indicator.md` — atdd-plugin convention (TodoWrite only). Creates the atdd `references/` directory.
+- **Create** `references/progress-indicator.md` — atdd-plugin convention (TodoWrite only). The atdd plugin's root is the repo root (`marketplace.json` source `"./"`), so its references directory is `<repo-root>/references/`.
 - **Modify** 5 gated engineer skills, `feature-init`, `onboard`, `reorient` — Step 0 wiring.
 - **Modify** 3 atdd skills — Step 0 wiring.
 - **Modify** `engineer/.claude-plugin/plugin.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` — version bumps to 0.7.0.
@@ -567,14 +567,14 @@ git commit -m "feat: wire progress indicators into feature-init, onboard, reorie
 
 ---
 
-## Task 7: `atdd/references/progress-indicator.md`
+## Task 7: `references/progress-indicator.md`
 
 **Files:**
-- Create: `atdd/references/progress-indicator.md` (creates the `atdd/references/` directory)
+- Create: `references/progress-indicator.md` (creates the atdd plugin's `references/` directory at the repo root)
 
 - [ ] **Step 1: Create the reference file**
 
-Create `atdd/references/progress-indicator.md` with exactly this content:
+Create `references/progress-indicator.md` with exactly this content:
 
 ```markdown
 # Workflow progress indicator — shared contract
@@ -607,7 +607,7 @@ visible movement instead of sitting at `in_progress` indefinitely.
 - [ ] **Step 2: Commit**
 
 ```bash
-git add atdd/references/progress-indicator.md
+git add references/progress-indicator.md
 git commit -m "docs: add atdd progress-indicator reference"
 ```
 
