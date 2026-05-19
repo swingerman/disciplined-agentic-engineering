@@ -8,3 +8,6 @@ social-preview.png
 # Python build artifacts
 __pycache__/
 *.pyc
+
+# Local working artifacts — superpowers brainstorming/plan docs (not part of the kit)
+docs/superpowers/
