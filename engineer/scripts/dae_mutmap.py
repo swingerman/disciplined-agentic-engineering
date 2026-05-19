@@ -128,3 +128,41 @@ def serialize(manifest):
         lines.append("    %s: %s%s" % (json.dumps(fid), text, tail))
     lines += ["  }", "}"]
     return "\n".join(lines) + "\n"
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help"):
+        print(__doc__)
+        return 0
+    mode, rest = argv[0], argv[1:]
+    full = "--full" in rest
+    rest = [a for a in rest if a != "--full"]
+    if mode == "select":
+        if len(rest) < 2:
+            print("usage: dae_mutmap.py select [--full] <manifest> <hashes-feed>")
+            return 2
+        result = select(_read_json(rest[0]), _read_json(rest[1]) or {}, full=full)
+        if result == "ALL":
+            print("ALL")
+        else:
+            for fid in result:
+                print(fid)
+        return 0
+    if mode == "update":
+        if len(rest) < 3:
+            print("usage: dae_mutmap.py update <manifest> "
+                  "<hashes-feed> <results-feed>")
+            return 2
+        new_manifest = update(_read_json(rest[0]), _read_json(rest[1]) or {},
+                              _read_json(rest[2]) or {})
+        with open(rest[0], "w", encoding="utf-8") as f:
+            f.write(serialize(new_manifest))
+        print("updated %s -- %d functions"
+              % (rest[0], len(new_manifest["functions"])))
+        return 0
+    print("unknown mode: %s" % mode)
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

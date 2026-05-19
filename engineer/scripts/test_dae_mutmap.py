@@ -133,5 +133,42 @@ class SerializeTests(unittest.TestCase):
         self.assertEqual([s["line"] for s in survivors], [10, 90])
 
 
+def _write(path, obj):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(obj, f)
+
+
+class MainTests(unittest.TestCase):
+    def test_help_returns_zero(self):
+        self.assertEqual(dae_mutmap.main(["--help"]), 0)
+
+    def test_select_mode_returns_zero(self):
+        with tempfile.TemporaryDirectory() as d:
+            mpath, hpath = os.path.join(d, "m.json"), os.path.join(d, "h.json")
+            _write(mpath, _manifest({"m::f": FN}))
+            _write(hpath, _feed({"m::f": {"code_hash": "NEW", "tests_hash": "t1"}}))
+            self.assertEqual(dae_mutmap.main(["select", mpath, hpath]), 0)
+
+    def test_select_mode_handles_missing_manifest(self):
+        with tempfile.TemporaryDirectory() as d:
+            hpath = os.path.join(d, "h.json")
+            _write(hpath, _feed({"m::f": {"code_hash": "c1", "tests_hash": "t1"}}))
+            self.assertEqual(
+                dae_mutmap.main(["select", os.path.join(d, "nope.json"), hpath]), 0)
+
+    def test_update_mode_writes_manifest(self):
+        with tempfile.TemporaryDirectory() as d:
+            mpath = os.path.join(d, "m.json")
+            hpath = os.path.join(d, "h.json")
+            rpath = os.path.join(d, "r.json")
+            _write(mpath, _manifest({}))
+            _write(hpath, _feed({"m::f": {"code_hash": "c1", "tests_hash": "t1"}}))
+            _write(rpath, {"functions": {"m::f": {"last_mutated": "2026-05-19",
+                   "mutants_total": 4, "mutants_killed": 4, "survivors": []}}})
+            self.assertEqual(dae_mutmap.main(["update", mpath, hpath, rpath]), 0)
+            reloaded = dae_mutmap._read_json(mpath)
+            self.assertIn("m::f", reloaded["functions"])
+
+
 if __name__ == "__main__":
     unittest.main()
