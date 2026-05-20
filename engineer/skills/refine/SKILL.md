@@ -21,6 +21,11 @@ Checkpoint 6, after `atdd:atdd-team` produces passing code, before `crap-analyze
 
 **Step 0 — Entry gate.** Before starting, verify the prior checkpoint is complete: run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py <feature-dir> --through 5`. On a non-zero exit, **stop** and surface the gap to the human — do not proceed.
 
+Verify branch hygiene: run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_branch.py <feature-dir>`.
+On a non-zero exit, **stop** and surface the message to the human — switch
+branches and re-invoke. The check honors the `git.manual: true` manifest
+opt-out.
+
 After the gate passes, show the **pipeline breadcrumb**: run
 `${CLAUDE_PLUGIN_ROOT}/scripts/dae_progress.py <feature-dir>` and present its
 output to the human — it shows where this checkpoint sits in the DAE pipeline.
