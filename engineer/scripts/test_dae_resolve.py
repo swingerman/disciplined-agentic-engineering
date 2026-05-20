@@ -278,5 +278,27 @@ class TestImpactAnalysisFlag(unittest.TestCase):
         self.assertEqual([e for e in errors if "impact_analysis" in e], [])
 
 
+class GitManualTests(unittest.TestCase):
+    def test_true_is_valid(self):
+        m = dr.read_manifest("git:\n  manual: true\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertFalse(any("git" in e for e in errors))
+
+    def test_false_is_valid(self):
+        m = dr.read_manifest("git:\n  manual: false\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertFalse(any("git" in e for e in errors))
+
+    def test_invalid_value_is_rejected(self):
+        m = dr.read_manifest("git:\n  manual: maybe\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertTrue(any("git" in e and "manual" in e for e in errors))
+
+    def test_absent_is_valid(self):
+        m = dr.read_manifest("paths:\n  features: features\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertFalse(any("git" in e for e in errors))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -42,6 +42,7 @@ MUTATION_CADENCES = {"per_pr", "per_merge", "per_release", "on_demand"}
 MUTATION_DEFAULTS = {"required", "opt_in"}
 AGENTIC_SUMMARY_FORMATS = {"markdown"}
 IMPACT_ANALYSIS_VALUES = {"on", "off"}
+GIT_MANUAL_VALUES = {True, False}
 
 
 class ManifestError(Exception):
@@ -278,6 +279,7 @@ def validate_manifest(manifest):
     _check_enum(errors, manifest, "agentic_summary", "format", AGENTIC_SUMMARY_FORMATS)
     _check_enum(errors, manifest, "acceptance", "impact_analysis",
                 IMPACT_ANALYSIS_VALUES)
+    _check_enum(errors, manifest, "git", "manual", GIT_MANUAL_VALUES)
 
     autonomy = manifest.get("autonomy")
     if isinstance(autonomy, dict):
