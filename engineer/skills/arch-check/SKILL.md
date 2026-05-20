@@ -1,6 +1,6 @@
 ---
 name: arch-check
-description: Use to check a feature's code against the charter's architecture rules — dependency layering, forbidden patterns, file naming, file size. Triggers — "/engineer.arch-check", "architecture check", "check architecture fitness", "does this follow the charter", "check layering".
+description: Use to check a feature's code against the charter's architecture rules — dependency layering, cycles, forbidden patterns, file naming, file size. Triggers — "/engineer.arch-check", "architecture check", "check architecture fitness", "does this follow the charter", "check layering".
 ---
 
 # arch-check

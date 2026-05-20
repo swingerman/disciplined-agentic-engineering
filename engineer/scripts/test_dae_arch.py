@@ -195,5 +195,37 @@ class CheckCyclesTests(unittest.TestCase):
         self.assertEqual(cycles, [["b", "c"]])
 
 
+class AuditIncludesCyclesTests(unittest.TestCase):
+    def test_audit_reports_cycles_when_present(self):
+        import subprocess
+        root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, root)
+        # Initialize git repo so files_in_scope works
+        subprocess.run(["git", "init"], cwd=root, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=root, capture_output=True)
+        subprocess.run(["git", "config", "user.name", "Test"], cwd=root, capture_output=True)
+        os.makedirs(os.path.join(root, "src"))
+        with open(os.path.join(root, "src", "a.py"), "w") as f:
+            f.write("from .b import x\n")
+        with open(os.path.join(root, "src", "b.py"), "w") as f:
+            f.write("from .a import y\n")
+        # Add files to git
+        subprocess.run(["git", "add", "src/a.py", "src/b.py"], cwd=root, capture_output=True)
+
+        manifest = {"architecture": {"layers": []}}
+        result = da.audit_rules(root, ["src/a.py", "src/b.py"], manifest["architecture"])
+        cycle_violations = [v for v in result if v[2] == "cycles"]
+        self.assertEqual(len(cycle_violations), 1,
+                         "expected exactly one cycle violation; got %r" % (result,))
+        v = cycle_violations[0]
+        self.assertIn(v[0], (os.path.join("src", "a.py"),
+                             os.path.join("src", "b.py"),
+                             "src/a.py", "src/b.py"))
+        self.assertEqual(v[2], "cycles")
+        # Message should reference both files in the cycle.
+        self.assertIn("a.py", v[3])
+        self.assertIn("b.py", v[3])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

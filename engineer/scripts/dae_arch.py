@@ -2,8 +2,8 @@
 """dae_arch.py — charter architecture fitness checker.
 
 Reads the `architecture:` section of .engineer/manifest.yml and checks the
-project against it: dependency layering, forbidden patterns, file naming, and
-file size. Reports violations and exits non-zero if any are found — it is a
+project against it: dependency layering, cycles, forbidden patterns, file naming,
+and file size. Reports violations and exits non-zero if any are found — it is a
 gate, like a test.
 
 Usage:
@@ -213,6 +213,44 @@ def _layer_of(path, layer_globs):
     return None
 
 
+def _build_import_graph(root, all_files):
+    """Build a directed graph of all project file imports.
+
+    Returns {file: [target_file, ...]} where file and target_file are
+    repo-relative paths to project source files.
+    """
+    graph = {}
+    known = {os.path.normpath(f) for f in all_files}
+    for f in all_files:
+        text = "\n".join(_read_lines(root, f))
+        graph[f] = []
+        for spec in extract_imports(f, text):
+            if f.endswith(".py"):
+                target = _resolve_python(spec, f, known)
+            else:
+                target = _resolve_js(spec, f, known)
+            if target is not None:
+                graph[f].append(target)
+    return graph
+
+
+def check_cycles_in_imports(root, all_files):
+    """Flag dependency cycles in the import graph.
+
+    Returns violations as (file, 0, "cycles", message) tuples.
+    """
+    graph = _build_import_graph(root, all_files)
+    cycles = check_cycles(graph)
+    violations = []
+    for cycle in cycles:
+        cycle_str = " -> ".join(cycle) + " -> " + cycle[0]
+        message = "circular dependency: %s" % cycle_str
+        # Report the cycle on the first file in it
+        if cycle:
+            violations.append((cycle[0], 0, "cycles", message))
+    return violations
+
+
 def check_layers(root, files, layer_rules, all_files):
     """Flag imports that cross a `may_not_import` layer boundary."""
     layer_globs = [(r["name"], _compile_globs(r["paths"])) for r in layer_rules]
@@ -248,9 +286,13 @@ def audit_rules(root, files, rules):
         violations += check_naming(files, rules["naming"])
     if rules.get("file_size"):
         violations += check_file_size(root, files, rules["file_size"])
+    # Both check_layers and check_cycles_in_imports need the full file list.
+    # Hoist the (subprocess-backed) call so it runs at most once.
+    all_files = files_in_scope(root, full=True)
     if rules.get("layers"):
-        all_files = files_in_scope(root, full=True)
         violations += check_layers(root, files, rules["layers"], all_files)
+    # Always check for cycles in the import graph
+    violations += check_cycles_in_imports(root, all_files)
     return violations
 
 
@@ -301,7 +343,7 @@ def main(argv):
                    for f, n, k, m in violations], sys.stdout, indent=2)
         sys.stdout.write("\n")
     else:
-        for kind in ("layers", "forbidden_patterns", "naming", "file_size"):
+        for kind in ("layers", "cycles", "forbidden_patterns", "naming", "file_size"):
             hits = [v for v in violations if v[2] == kind]
             if hits:
                 sys.stdout.write("\n%s (%d):\n" % (kind, len(hits)))
