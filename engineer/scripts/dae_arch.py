@@ -312,5 +312,48 @@ def main(argv):
     return 1 if violations else 0
 
 
+def check_cycles(graph):
+    """Find dependency cycles via Tarjan's strongly-connected-components.
+
+    graph - {node: [neighbor, ...]}.
+    Returns a sorted list of cycles; each cycle is a sorted list of nodes.
+    An SCC of size > 1, or a size-1 SCC with a self-loop, counts as a cycle.
+    """
+    index_counter = [0]
+    stack = []
+    on_stack = {}
+    index = {}
+    lowlink = {}
+    cycles = []
+
+    def strongconnect(v):
+        index[v] = index_counter[0]
+        lowlink[v] = index_counter[0]
+        index_counter[0] += 1
+        stack.append(v)
+        on_stack[v] = True
+        for w in graph.get(v, []):
+            if w not in index:
+                strongconnect(w)
+                lowlink[v] = min(lowlink[v], lowlink[w])
+            elif on_stack.get(w):
+                lowlink[v] = min(lowlink[v], index[w])
+        if lowlink[v] == index[v]:
+            component = []
+            while True:
+                w = stack.pop()
+                on_stack[w] = False
+                component.append(w)
+                if w == v:
+                    break
+            if len(component) > 1 or (len(component) == 1 and v in graph.get(v, [])):
+                cycles.append(sorted(component))
+
+    for node in list(graph):
+        if node not in index:
+            strongconnect(node)
+    return sorted(cycles)
+
+
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

@@ -159,5 +159,41 @@ class TestAudit(unittest.TestCase):
         self.assertEqual(da.audit_rules(root, [], {}), [])
 
 
+class CheckCyclesTests(unittest.TestCase):
+    def test_no_cycle_in_empty_graph(self):
+        self.assertEqual(da.check_cycles({}), [])
+
+    def test_no_cycle_in_linear_chain(self):
+        # a -> b -> c, no cycle
+        graph = {"a": ["b"], "b": ["c"], "c": []}
+        self.assertEqual(da.check_cycles(graph), [])
+
+    def test_self_loop_is_a_cycle(self):
+        graph = {"a": ["a"]}
+        self.assertEqual(da.check_cycles(graph), [["a"]])
+
+    def test_two_node_cycle(self):
+        graph = {"a": ["b"], "b": ["a"]}
+        self.assertEqual(da.check_cycles(graph), [["a", "b"]])
+
+    def test_three_node_cycle(self):
+        graph = {"a": ["b"], "b": ["c"], "c": ["a"]}
+        self.assertEqual(da.check_cycles(graph), [["a", "b", "c"]])
+
+    def test_disjoint_cycles_are_both_reported(self):
+        # Two independent 2-cycles.
+        graph = {"a": ["b"], "b": ["a"], "x": ["y"], "y": ["x"]}
+        cycles = da.check_cycles(graph)
+        self.assertEqual(len(cycles), 2)
+        self.assertIn(["a", "b"], cycles)
+        self.assertIn(["x", "y"], cycles)
+
+    def test_acyclic_portions_are_excluded(self):
+        # a -> b -> c -> b (cycle b<->c); d -> a (acyclic).
+        graph = {"a": ["b"], "b": ["c"], "c": ["b"], "d": ["a"]}
+        cycles = da.check_cycles(graph)
+        self.assertEqual(cycles, [["b", "c"]])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
