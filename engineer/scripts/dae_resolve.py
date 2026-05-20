@@ -43,6 +43,8 @@ MUTATION_DEFAULTS = {"required", "opt_in"}
 AGENTIC_SUMMARY_FORMATS = {"markdown"}
 IMPACT_ANALYSIS_VALUES = {"on", "off"}
 GIT_MANUAL_VALUES = {True, False}
+DUPLICATION_TOOLS = {"jscpd", "pmd-cpd", "flay", "dupl"}
+DUPLICATION_SKIP_VALUES = {True, False}
 
 
 class ManifestError(Exception):
@@ -280,6 +282,8 @@ def validate_manifest(manifest):
     _check_enum(errors, manifest, "acceptance", "impact_analysis",
                 IMPACT_ANALYSIS_VALUES)
     _check_enum(errors, manifest, "git", "manual", GIT_MANUAL_VALUES)
+    _check_enum(errors, manifest, "duplication", "tool", DUPLICATION_TOOLS)
+    _check_enum(errors, manifest, "duplication", "skip", DUPLICATION_SKIP_VALUES)
 
     autonomy = manifest.get("autonomy")
     if isinstance(autonomy, dict):

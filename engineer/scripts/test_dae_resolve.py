@@ -300,5 +300,41 @@ class GitManualTests(unittest.TestCase):
         self.assertFalse(any("git" in e for e in errors))
 
 
+class DuplicationTests(unittest.TestCase):
+    def test_default_backend_is_valid(self):
+        m = dr.read_manifest("duplication:\n  tool: jscpd\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertFalse(any("duplication" in e for e in errors))
+
+    def test_other_known_backends_are_valid(self):
+        for tool in ("pmd-cpd", "flay", "dupl"):
+            m = dr.read_manifest(
+                "duplication:\n  tool: %s\n" % tool)
+            errors, _ = dr.validate_manifest(m)
+            self.assertFalse(any("duplication" in e for e in errors),
+                             "expected %s to be valid; got %r" % (tool, errors))
+
+    def test_unknown_backend_is_rejected(self):
+        m = dr.read_manifest("duplication:\n  tool: bogus\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertTrue(any("duplication" in e and "tool" in e for e in errors))
+
+    def test_skip_true_false_are_valid(self):
+        for v in ("true", "false"):
+            m = dr.read_manifest("duplication:\n  skip: %s\n" % v)
+            errors, _ = dr.validate_manifest(m)
+            self.assertFalse(any("duplication" in e for e in errors))
+
+    def test_skip_invalid_value_is_rejected(self):
+        m = dr.read_manifest("duplication:\n  skip: maybe\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertTrue(any("duplication" in e and "skip" in e for e in errors))
+
+    def test_absent_is_valid(self):
+        m = dr.read_manifest("paths:\n  features: features\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertFalse(any("duplication" in e for e in errors))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
