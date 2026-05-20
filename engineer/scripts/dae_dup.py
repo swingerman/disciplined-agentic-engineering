@@ -102,6 +102,7 @@ def find_duplicates(project_root, manifest):
     {"status": "unavailable", "reason": "...", "install": "...",  — tool missing
                               "duplicates": []}
     {"status": "unsupported", "reason": "...", "duplicates": []}  — backend not in v1
+    {"status": "error",       "reason": "...", "duplicates": []}  — scan failed
     """
     if is_skipped(manifest):
         return {"status": "skipped", "reason": "manifest opt-out",
