@@ -63,7 +63,9 @@ def check(feature_dir, manifest):
         return True, ""
     branch = current_branch(feature_dir)
     if branch is None:
-        return False, "not in a git repo (or git unavailable) -- cannot verify branch"
+        return False, ("could not determine current branch "
+                       "(not in a git repo, detached HEAD, or git unavailable) "
+                       "-- cannot verify branch")
     want = expected_branch(feature_dir)
     if branch == want:
         return True, ""
