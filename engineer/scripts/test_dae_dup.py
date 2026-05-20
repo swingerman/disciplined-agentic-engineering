@@ -72,5 +72,82 @@ class NormalizeJscpdTests(unittest.TestCase):
         self.assertEqual(dae_dup.normalize_jscpd({}), [])
 
 
+class BackendAvailableTests(unittest.TestCase):
+    def test_true_when_on_path(self):
+        with mock.patch("shutil.which", return_value="/usr/bin/jscpd"):
+            self.assertTrue(dae_dup.backend_available("jscpd"))
+
+    def test_false_when_not_on_path(self):
+        with mock.patch("shutil.which", return_value=None):
+            self.assertFalse(dae_dup.backend_available("jscpd"))
+
+
+class FindDuplicatesTests(unittest.TestCase):
+    def test_skip_short_circuits(self):
+        result = dae_dup.find_duplicates(
+            "/tmp/proj", {"duplication": {"skip": True}})
+        self.assertEqual(result["status"], "skipped")
+        self.assertEqual(result["duplicates"], [])
+
+    def test_unavailable_when_tool_missing(self):
+        with mock.patch("shutil.which", return_value=None):
+            result = dae_dup.find_duplicates("/tmp/proj", {})
+        self.assertEqual(result["status"], "unavailable")
+        self.assertIn("jscpd", result.get("reason", ""))
+        self.assertIn("npm install", result.get("install", ""))
+        self.assertEqual(result["duplicates"], [])
+
+    def test_unsupported_backend(self):
+        with mock.patch("shutil.which", return_value="/x/pmd-cpd"):
+            result = dae_dup.find_duplicates(
+                "/tmp/proj", {"duplication": {"tool": "pmd-cpd"}})
+        self.assertEqual(result["status"], "unsupported")
+        self.assertEqual(result["duplicates"], [])
+
+    def test_jscpd_path_runs_and_normalizes(self):
+        # Real jscpd writes its report to <output>/jscpd-report.json with
+        # --silent --reporters json. Simulate by pre-creating that file.
+        with tempfile.TemporaryDirectory() as d:
+            report_dir = os.path.join(d, ".build", "jscpd")
+            os.makedirs(report_dir)
+            with open(os.path.join(report_dir, "jscpd-report.json"), "w") as f:
+                json.dump(JSCPD_RAW, f)
+            fake_run = mock.MagicMock(
+                return_value=mock.MagicMock(returncode=0, stdout="", stderr=""))
+            with mock.patch("shutil.which", return_value="/x/jscpd"), \
+                 mock.patch("subprocess.run", fake_run):
+                result = dae_dup.find_duplicates(d, {})
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(len(result["duplicates"]), 2)
+        self.assertEqual(result["duplicates"][0]["tokens"], 75)
+
+    def test_error_when_subprocess_fails(self):
+        # OSError on subprocess.run (e.g. permission denied) should surface
+        # as status: error, not silently empty status: ok.
+        with mock.patch("shutil.which", return_value="/x/jscpd"), \
+             mock.patch("subprocess.run", side_effect=OSError("permission denied")):
+            result = dae_dup.find_duplicates("/tmp/proj", {})
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["duplicates"], [])
+
+    def test_error_when_report_missing(self):
+        # Subprocess returns 0 but produces no report file.
+        with tempfile.TemporaryDirectory() as d:
+            fake_run = mock.MagicMock(
+                return_value=mock.MagicMock(returncode=0, stdout="", stderr=""))
+            with mock.patch("shutil.which", return_value="/x/jscpd"), \
+                 mock.patch("subprocess.run", fake_run):
+                result = dae_dup.find_duplicates(d, {})
+        self.assertEqual(result["status"], "error")
+
+
+class MainTests(unittest.TestCase):
+    def test_help_returns_zero(self):
+        self.assertEqual(dae_dup.main(["--help"]), 0)
+
+    def test_no_args_returns_zero(self):
+        self.assertEqual(dae_dup.main([]), 0)
+
+
 if __name__ == "__main__":
     unittest.main()
