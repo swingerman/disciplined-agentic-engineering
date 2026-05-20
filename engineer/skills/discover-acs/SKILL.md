@@ -36,7 +36,7 @@ blocks the skill. Then create one TodoWrite todo per workflow step below. See
 `${CLAUDE_PLUGIN_ROOT}/references/progress-indicator.md`.
 
 1. **Resolve + validate** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); locate the feature. Reject if not found, if `status: parked` (→ `discuss` to promote first), or if `acs.md` already exists with content. Pick the mode: existing spec/code present → reverse-engineer; else → greenfield.
-2. **Load** — `feature.md`, `CHARTER.md`, `manifest.yml`, prior `handoffs/`. Reverse-engineer mode: also load the existing spec / design doc / relevant code.
+2. **Load** — `feature.md`, `CHARTER.md`, `manifest.yml`, prior `handoffs/`. Reverse-engineer mode: also load the existing spec / design doc / relevant code. **For code lookup in reverse-engineer mode** (surveying what exists, tracing what calls what), prefer LSP workspace-symbols / find-references when an LSP MCP capability is available; fall back to grep + Read otherwise. See `${CLAUDE_PLUGIN_ROOT}/references/code-lookup.md`.
 3. **Discover the ACs:**
    - **Greenfield** — interview in four passes, one question per turn, coverage prompts per pass.
    - **Reverse-engineer** — extract candidate ACs from the existing material, organized by the four passes; then interview only for genuine gaps the material leaves undecided. Gap questions may be **batched** (e.g. one `AskUserQuestion` with up to 4) rather than one-per-turn — the existing material already carries the bulk.
