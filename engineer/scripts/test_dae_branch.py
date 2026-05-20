@@ -56,5 +56,98 @@ class IsManualTests(unittest.TestCase):
         self.assertFalse(dae_branch.is_manual({"git": True}))
 
 
+def _git(args, cwd):
+    subprocess.run(["git"] + args, cwd=cwd, check=True,
+                   capture_output=True, text=True)
+
+
+def _init_repo(parent, branch="master"):
+    os.makedirs(parent, exist_ok=True)
+    _git(["init", "-q", "-b", branch], cwd=parent)
+    _git(["config", "user.email", "t@t"], cwd=parent)
+    _git(["config", "user.name", "t"], cwd=parent)
+    open(os.path.join(parent, "init.txt"), "w").close()
+    _git(["add", "init.txt"], cwd=parent)
+    _git(["commit", "-q", "-m", "init"], cwd=parent)
+
+
+class CheckTests(unittest.TestCase):
+    def test_match_returns_ok_silent(self):
+        with tempfile.TemporaryDirectory() as d:
+            _init_repo(d, branch="image-formats")
+            feat = os.path.join(d, "015-image-formats")
+            _write_feature_md(feat, branch="image-formats")
+            ok, msg = dae_branch.check(feat, {})
+            self.assertTrue(ok)
+            self.assertEqual(msg, "")
+
+    def test_mismatch_returns_helpful_message(self):
+        with tempfile.TemporaryDirectory() as d:
+            _init_repo(d, branch="master")
+            feat = os.path.join(d, "015-image-formats")
+            _write_feature_md(feat, branch="image-formats")
+            ok, msg = dae_branch.check(feat, {})
+            self.assertFalse(ok)
+            self.assertIn("master", msg)
+            self.assertIn("image-formats", msg)
+            self.assertIn("git checkout image-formats", msg)
+
+    def test_manual_opt_out_skips_check(self):
+        with tempfile.TemporaryDirectory() as d:
+            _init_repo(d, branch="master")
+            feat = os.path.join(d, "015-image-formats")
+            _write_feature_md(feat, branch="image-formats")
+            ok, msg = dae_branch.check(feat, {"git": {"manual": True}})
+            self.assertTrue(ok)
+            self.assertEqual(msg, "")
+
+    def test_not_a_repo_returns_error(self):
+        with tempfile.TemporaryDirectory() as d:
+            feat = os.path.join(d, "015-image-formats")
+            _write_feature_md(feat, branch="image-formats")
+            ok, msg = dae_branch.check(feat, {})
+            self.assertFalse(ok)
+            self.assertIn("not in a git repo", msg)
+
+    def test_slug_fallback_match(self):
+        with tempfile.TemporaryDirectory() as d:
+            _init_repo(d, branch="payments")
+            feat = os.path.join(d, "042-payments")
+            os.makedirs(feat)
+            ok, msg = dae_branch.check(feat, {})
+            self.assertTrue(ok)
+
+
+class MainTests(unittest.TestCase):
+    def test_help_returns_zero(self):
+        self.assertEqual(dae_branch.main(["--help"]), 0)
+
+    def test_match_in_real_repo_returns_zero(self):
+        with tempfile.TemporaryDirectory() as d:
+            _init_repo(d, branch="payments")
+            feat = os.path.join(d, "042-payments")
+            os.makedirs(feat)
+            self.assertEqual(dae_branch.main([feat]), 0)
+
+    def test_mismatch_in_real_repo_returns_nonzero(self):
+        with tempfile.TemporaryDirectory() as d:
+            _init_repo(d, branch="master")
+            feat = os.path.join(d, "042-payments")
+            os.makedirs(feat)
+            self.assertEqual(dae_branch.main([feat]), 1)
+
+    def test_broken_manifest_degrades_to_no_manifest(self):
+        with tempfile.TemporaryDirectory() as d:
+            _init_repo(d, branch="payments")
+            eng = os.path.join(d, ".engineer")
+            os.makedirs(eng)
+            with open(os.path.join(eng, "manifest.yml"), "w") as f:
+                f.write("  badly indented: true\nduplicate:\nduplicate:\n")
+            feat = os.path.join(d, "042-payments")
+            os.makedirs(feat)
+            # Should not crash; falls back to empty manifest, branch check proceeds normally.
+            self.assertEqual(dae_branch.main([feat]), 0)
+
+
 if __name__ == "__main__":
     unittest.main()
