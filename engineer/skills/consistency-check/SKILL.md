@@ -18,7 +18,7 @@ Before major pipeline transitions and as a CI gate.
 
 ## Workflow
 
-1. **Resolve + load** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`). Feature scope: load every artifact in `features/NNN-<slug>/` + `CHARTER.md`. Project scope: load `CHARTER.md` + every `feature.md` frontmatter.
+1. **Resolve + load** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`). Feature scope: load every artifact in `features/NNN-<slug>/` + `CHARTER.md`. Project scope: load `CHARTER.md` + every `feature.md` frontmatter. For identifier lookups (does symbol X actually exist in the code?), prefer LSP find-definitions / workspace-symbols when an LSP MCP capability is available; fall back to grep + Read otherwise. See `${CLAUDE_PLUGIN_ROOT}/references/code-lookup.md`.
 2. **Run the checks** (below).
 3. **Report** — errors first, then warnings; each with location + a suggested fix (which skill to run). Do not apply fixes.
 4. **Handoff** — emit a summary.
