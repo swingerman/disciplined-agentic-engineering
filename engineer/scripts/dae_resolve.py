@@ -45,6 +45,7 @@ IMPACT_ANALYSIS_VALUES = {"on", "off"}
 GIT_MANUAL_VALUES = {True, False}
 DUPLICATION_TOOLS = {"jscpd", "pmd-cpd", "flay", "dupl"}
 DUPLICATION_SKIP_VALUES = {True, False}
+FEATURE_FLAG_TOOLS = {"launchdarkly", "unleash", "flagsmith", "growthbook", "other"}
 
 
 class ManifestError(Exception):
@@ -284,6 +285,16 @@ def validate_manifest(manifest):
     _check_enum(errors, manifest, "git", "manual", GIT_MANUAL_VALUES)
     _check_enum(errors, manifest, "duplication", "tool", DUPLICATION_TOOLS)
     _check_enum(errors, manifest, "duplication", "skip", DUPLICATION_SKIP_VALUES)
+
+    val = manifest.get("validation")
+    if isinstance(val, dict):
+        ff = val.get("feature_flags")
+        if isinstance(ff, dict):
+            tool = ff.get("tool")
+            if tool is not None and tool not in FEATURE_FLAG_TOOLS:
+                errors.append(
+                    "validation.feature_flags.tool = %r -- must be one of %s"
+                    % (tool, sorted(FEATURE_FLAG_TOOLS)))
 
     autonomy = manifest.get("autonomy")
     if isinstance(autonomy, dict):

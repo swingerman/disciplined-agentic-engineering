@@ -336,5 +336,33 @@ class DuplicationTests(unittest.TestCase):
         self.assertFalse(any("duplication" in e for e in errors))
 
 
+class ValidationFeatureFlagsTests(unittest.TestCase):
+    def test_known_tools_are_valid(self):
+        for tool in ("launchdarkly", "unleash", "flagsmith", "growthbook", "other"):
+            m = dr.read_manifest(
+                "validation:\n  feature_flags:\n    tool: %s\n" % tool)
+            errors, _ = dr.validate_manifest(m)
+            self.assertFalse(any("validation" in e for e in errors),
+                             "expected %s to be valid; got %r" % (tool, errors))
+
+    def test_unknown_tool_is_rejected(self):
+        m = dr.read_manifest(
+            "validation:\n  feature_flags:\n    tool: bogus\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertTrue(any("validation.feature_flags.tool" in e for e in errors))
+
+    def test_absent_is_valid(self):
+        m = dr.read_manifest("paths:\n  features: features\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertFalse(any("validation" in e for e in errors))
+
+    def test_non_dict_feature_flags_does_not_crash(self):
+        # A malformed manifest where feature_flags is a scalar.
+        m = dr.read_manifest(
+            "validation:\n  feature_flags: yes\n")
+        # Should not raise; light validation tolerates the bad shape.
+        dr.validate_manifest(m)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
