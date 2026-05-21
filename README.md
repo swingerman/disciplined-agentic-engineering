@@ -56,7 +56,7 @@ If the artifact you author changes but you stop checking the output, you don't g
 
 DAE synthesizes four sources:
 
-- **ATDD** (Robert C. Martin / Uncle Bob) — Given/When/Then specs as the behavior contract; the two-test-stream discipline (acceptance + unit); mutation testing as the test-quality firewall.
+- **ATDD** — Acceptance Test Driven Development. An established testing practice from the XP / FIT / Fitnesse lineage (Kent Beck, Ward Cunningham, and others). Robert C. Martin's recent experiments in [empire-2025](https://github.com/unclebob/empire-2025) demonstrated ATDD's particular power as a constraint on **agentic** AI development — two test streams (acceptance + unit) the AI cannot talk its way past, plus mutation testing as the test-quality firewall. The `atdd` plugin in this marketplace packages that agentic-coding approach for Claude Code.
 - **[Speckit](https://github.com/github/spec-kit)** — Spec-driven agentic development. DAE adopts Speckit's central insight that **specification is iterative and layered, not a one-shot document**. Each DAE feature evolves through a sequence of progressively-sharper specs: `feature.md` (intent — the Ready contract) → `acs.md` (behavior in domain language) → `spec.md` (Gherkin — executable) → `plan.md` (architecture). Each layer is reviewed and approved before the next is written; each constrains and informs the layers below. The per-feature folder is the workspace that holds these layers (and the `handoffs/` + `.build/` they accumulate) together.
 - **[Acceptance Pipeline Specification](https://github.com/unclebob/Acceptance-Pipeline-Specification)** (Uncle Bob, 2026) — Portable acceptance pipeline: Gherkin → JSON IR → generated tests → runner; mutation as IR-level sidecar.
 - **Claude Code's stock `/simplify`** — The three-subagent parallel review pattern (Reuse / Quality / Efficiency). DAE's `refine` (Checkpoint 6) is modeled on this skill, adding two layers on top: charter validation of every proposal (charter-violating proposals are rejected internally, never shown) and graceful breaking-change classification.
@@ -256,7 +256,7 @@ The original ATDD workflow plugin continues to ship as part of this marketplace.
 
 > "Specs will be co-authored by the humans and the AI, but with final approval, ferociously defended, by the humans." — Robert C. Martin
 
-**Inspired by [Robert C. Martin's](https://en.wikipedia.org/wiki/Robert_C._Martin) (Uncle Bob) acceptance test approach from [empire-2025](https://github.com/unclebob/empire-2025).** The ideas, methodology, and key insights in the atdd plugin come directly from his work and public writings on Spec Driven Design (SDD) and ATDD.
+**Packages [Robert C. Martin's](https://en.wikipedia.org/wiki/Robert_C._Martin) (Uncle Bob) approach to applying ATDD to agentic AI coding** — as developed in [empire-2025](https://github.com/unclebob/empire-2025) and his public writings on Spec-Driven Design (SDD) for AI agents. ATDD itself is an older testing practice (XP / FIT / Fitnesse lineage); Uncle Bob's contribution is *how to wield it as a discipline against AI agents that "willy-nilly plop code around."* This plugin turns that approach into Claude Code skills, agents, hooks, and commands.
 
 ### Why ATDD with AI?
 
@@ -403,13 +403,13 @@ The plugin's preferred approach is to **build a project-specific mutation tool**
 
 ## Attribution
 
-The `atdd` plugin is an implementation of Robert C. Martin's (Uncle Bob) Acceptance Test Driven Development and Spec Driven Design methodology. The approach, insights, and principles come from:
+The `atdd` plugin packages **Robert C. Martin's (Uncle Bob) approach to applying ATDD to agentic AI coding** into Claude Code skills, agents, hooks, and commands. ATDD itself is an older testing practice from the XP / FIT / Fitnesse lineage (Kent Beck, Ward Cunningham, and others); Uncle Bob's distinct contribution is its disciplined application against AI agents — the two-test-stream constraint, the spec-leakage rule, the project-specific test pipeline, the differential-mutation insight. The approach, insights, and surrounding practices come from:
 
 - [empire-2025](https://github.com/unclebob/empire-2025) — Uncle Bob's project where this approach was developed and refined
 - [Acceptance Pipeline Specification](https://github.com/unclebob/Acceptance-Pipeline-Specification) — Portable acceptance pipeline spec that DAE adopts
 - His public writings and tweets on ATDD, SDD, and AI-assisted development — including the swarm-failure observations that drove DAE's deterministic-guardrail philosophy and the differential-mutation post that shaped `dae_mutmap.py`
 
-The `engineer` plugin synthesizes Uncle Bob's ATDD with **[Speckit](https://github.com/github/spec-kit)'s iterative, layered specification pattern** — every feature progresses through a stack of progressively-sharper spec artifacts (intent → ACs → Gherkin → plan), each approved before the next — and adds DAE-specific elements: the Ready contract, autonomy levels, verification independence, the structured handoff / exit-criteria contract, the deterministic guardrail tools (`dae_*.py`), and integration with `crap-analyzer` for change-risk analysis.
+The `engineer` plugin synthesizes Uncle Bob's ATDD-for-agents approach with **[Speckit](https://github.com/github/spec-kit)'s iterative, layered specification pattern** — every feature progresses through a stack of progressively-sharper spec artifacts (intent → ACs → Gherkin → plan), each approved before the next — and adds DAE-specific elements: the Ready contract, autonomy levels, verification independence, the structured handoff / exit-criteria contract, the deterministic guardrail tools (`dae_*.py`), and integration with `crap-analyzer` for change-risk analysis.
 
 This marketplace does not contain any code from empire-2025 or other upstream projects. It adapts the methodology for use as Claude Code plugins.
 
