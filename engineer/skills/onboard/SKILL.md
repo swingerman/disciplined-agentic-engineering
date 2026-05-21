@@ -15,7 +15,7 @@ A feature is **fully ATDD-covered** when its folder has `feature.md`, `acs.md`, 
 
 ## When to use
 
-- **No `.engineer/manifest.yml`** → full onboard (Steps 1–10)
+- **No `.engineer/manifest.yml`** → full onboard (Steps 1–11)
 - **Manifest exists** → gap-check mode (validate, report gaps, don't re-onboard)
 
 **Not for:** starting a feature (`discuss` / `feature-init`, after onboard); changing an existing charter (edit it directly, PR'd).
@@ -24,8 +24,8 @@ A feature is **fully ATDD-covered** when its folder has `feature.md`, `acs.md`, 
 
 Onboarding is a **ceremony**, not a mechanical scaffold. Two of its outputs are *design decisions* reserved for the human — the agent drafts, the human decides:
 
-- **The charter** (Step 2) — architecture, conventions, scope, quality and autonomy stance.
-- **The tracking decision** (Step 4) — which tracker the project uses.
+- **The charter** (Step 3) — architecture, conventions, scope, quality and autonomy stance.
+- **The tracking decision** (Step 5) — which tracker the project uses.
 
 Pre-filling from an existing codebase is encouraged. **Rubber-stamping is not.** Onboarding does NOT complete until the human has explicitly signed off on the charter and chosen the tracker — exactly as `plan` does for architecture (agent proposes, human confirms before proceeding). If the human is not available to decide, stop and emit a handoff with `human_action_needed: decision` — do not auto-decide and move on.
 
@@ -55,7 +55,7 @@ breadcrumb.
 7. **Discover features** — walk the repo (read-only) for every feature-shaped chunk, **documented and undocumented**:
    - *Documented* — Speckit `specs/NNN-slug/`, feature branches, `docs/specs/*.md`, GitHub Issues used as specs, informal README specs.
    - *Undocumented* — feature-shaped code with no spec at all: scan the packages/modules for coherent capabilities (a route group, a service, a UI surface) that no document covers.
-   For each, record: source (or "code-only"), slug, state (spec-only / in-progress / shipped / merged), **code co-locations** (which packages/dirs the code lives in), and current DAE coverage (which of `feature.md` / `acs.md` / `spec.md` / acceptance tests exist — usually none). Greenfield project → discovery is empty; skip to Step 10.
+   For each, record: source (or "code-only"), slug, state (spec-only / in-progress / shipped / merged), **code co-locations** (which packages/dirs the code lives in), and current DAE coverage (which of `feature.md` / `acs.md` / `spec.md` / acceptance tests exist — usually none). Greenfield project → discovery is empty; skip to Step 11.
 8. **Triage** — with the human, rank the discovered features by importance to the project, and assign each a status (`done` shipped / `in-progress` / `ready` spec-only / `parked` dormant). Triage order drives the consolidation backlog's priority and which features get formalized first. Importance is a human judgement — surface a proposed ranking, let the human reorder.
 9. **Write the consolidation backlog + seed the tracker** — two views of the triaged inventory:
    - `.engineer/consolidation.md`: the inventory as a **coverage table** (one row per feature, a column per coverage artifact) plus consolidation tasks in triage-priority order. Goal stated at the top: every row all-✅. Each task — "bring feature X to full ATDD coverage" — is bounded and **dispatchable to a remote agent**; note the suggested execution mode per task.
