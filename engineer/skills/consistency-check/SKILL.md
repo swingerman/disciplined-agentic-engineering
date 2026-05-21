@@ -35,6 +35,7 @@ Before major pipeline transitions and as a CI gate.
 | `relevant_adrs` reference ADRs that exist | error |
 | `spec.md` and `.build/spec.json` agree | error |
 | `plan.md` Charter Check: every ⚠️ deviation has a matching amendment | error |
+| **Validation method honored?** — if `feature.md` declares a non-default `validation_method`, `plan.md`'s Test strategy section must reference it (canary phase, dashboard names, rollout trigger, etc. as relevant) | warning |
 | Verification handoffs: `agent_id` ≠ implementer's (Principle 7) | error |
 | `tracker_ref` resolves on the configured tracker | warning |
 | Handoff completeness: no checkpoint marked done in `progress.md` lacks a complete handoff | error |
