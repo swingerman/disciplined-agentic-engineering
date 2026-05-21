@@ -17,6 +17,14 @@ It's positioned in direct opposition to **vibe coding** — the loose-prompt, we
 
 **The headline outcome: semantic stability.** ATDD + mutation testing together form a *semantic firewall* — code can be refactored, extended, or modified by agents without the system's intended behavior drifting. This is the moat between DAE-built systems and "AI plops code around."
 
+### Who is this for?
+
+DAE is **for software engineers** — people who already know what acceptance tests are, why mutation testing matters, why architectural layering matters, why naming matters, why the difference between a behavior contract and an implementation detail matters. The methodology assumes you can read a `plan.md` and tell whether the proposed architecture is sound; that you can read a Gherkin spec and tell whether the behavior contract captures intent; that you know when a charter rule should be enforced vs. amended.
+
+**It is not for non-programmers.** "Build an app without code" tools target a different audience and a different problem. DAE keeps the engineer in charge precisely because the decisions DAE puts in front of you — architecture, behavior contracts, charter rules, verification thresholds, autonomy levels — are *engineering* decisions, and they need engineering judgment.
+
+If you are a software engineer who wants AI's speed without losing the system's coherence, DAE is built for you.
+
 ### DAE vs. vibe coding
 
 **Vibe coding** is the rising practice of prompting an AI agent loosely — *"build me a thing that does X"* — accepting whatever comes back, running it, patching when something feels off. No charter to obey, no behavior contract to satisfy, no verification gates to pass. Fast at first; brittle over time. The codebase drifts; tests pass without proving anything; regressions surface as users find them.
@@ -35,6 +43,16 @@ It's positioned in direct opposition to **vibe coding** — the loose-prompt, we
 | **Pace** | fast initially | steady; sustainable across long horizons |
 
 If you're shipping something quick and disposable, vibe coding is fine. If you're building something you intend to maintain and evolve — and you want AI agents helping without eroding what they touch — DAE is the discipline that keeps the system coherent.
+
+### A historical angle — abstraction climbs; discipline endures
+
+Programming has always been a climb up the abstraction ladder. Toggling binary on a front panel → punch cards → assembly → high-level languages → garbage collection → frameworks → managed runtimes — and now, with capable LLMs, **specification and behavior description as the next rung**. At every step the rung below fades from daily concern: nobody hand-writes opcodes anymore; nobody audits the assembly a compiler emits. The artifact a human authors shifts upward, and the rung below is *trusted as generated output*.
+
+What never shifts is **engineering discipline**. A good engineer in 1975 cared about correctness, structure, maintainability, separation of concerns, verification — and so does a good engineer in 2026, even though the artifact has changed from PDP-11 assembly to a Gherkin spec and a charter. The compiler-generated assembly was trusted because the compiler was rigorous *and the inputs were checked*. AI-generated code earns that same trust the same way: the input artifact (specs, ACs, plans, charter) is rigorous, and the output is checked (two test streams + mutation testing + arch-fitness + change-risk + duplicate detection + cycle detection).
+
+**DAE is the discipline layer for the spec-as-source-code era.** It treats specifications, acceptance criteria, and architecture as the artifacts engineers author and review with care; it lets AI agents handle the keystrokes the way compilers handle opcodes. The pipeline, the verification gates, the handoff-as-gate transitions, the two test streams, the mutation firewall — those *are* the discipline, instantiated as independent tools the agent has to satisfy. The methodology adapts to the new abstraction; the engineering values are the same as they have always been.
+
+If the artifact you author changes but you stop checking the output, you don't get speed — you get a faster path to a brittle, drifting system. DAE's premise is that **the new abstraction needs the same discipline the old ones did** — and the right place to instantiate that discipline is in tools the methodology hands you, not in good intentions.
 
 DAE synthesizes four sources:
 
