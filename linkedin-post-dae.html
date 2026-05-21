@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>LinkedIn Post — Disciplined Agentic Engineering</title>
+<title>LinkedIn Post — Disciplined Agentic Engineering (v1.3 refresh)</title>
 <style>
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -65,68 +65,64 @@
 
 <div class="post">
 
-<b>From a plugin to a methodology: Disciplined Agentic Engineering</b>
+<b>The discipline layer for the spec-as-source-code era</b>
 <br><br>
 
-A few weeks ago I packaged Robert C. Martin's acceptance-test approach as a Claude Code plugin. That was the seed. Watching where Uncle Bob took it next is what grew it into a whole methodology.
+Three months in, <b>Disciplined Agentic Engineering (DAE)</b> hit v1.3 — a Claude Code methodology for engineers who want AI's speed without losing the system's coherence.
 <br><br>
 
-He kept going — running a <i>swarm</i> of Claude agents for days at a stretch. And the swarm started to fail in instructive ways:
+<b>The premise.</b> <i>Vibe coding</i> is the rising practice of prompting an AI loosely — "build me a thing that does X" — accepting whatever comes back, patching when it feels off. Fast at first; brittle over time. The codebase drifts; tests pass without proving anything; regressions surface as users find them.
 <br><br>
 
-<blockquote>"They've started to lose their particular identities. The coder is doing crap analysis. The refactorer finds it has nothing to do because the coder did it... The architect decided to not run mutation tests because they take a long time."</blockquote>
-
-None of that is the model being dumb. It is a <b>methodology</b> gap. Discipline that lives in a prompt is soft — the agent rationalizes past it, and it erodes every time the context compacts. Uncle Bob put the fix precisely:
+DAE is the deliberate opposite. Every feature has a charter to obey, a Ready contract, ACs in domain language, a Gherkin spec the human approves, an architecture plan, two test streams that both must go green, mutation testing as the test-quality firewall — and <b>deterministic guardrail tools</b> gating every transition.
 <br><br>
 
-<blockquote>"You, the architect, must drive that vision by constructing the guard rails that enforce it. Those guard rails are not AI rules — they are independent tools that the AI uses to validate what it has built."</blockquote>
-
-So I built <b>Disciplined Agentic Engineering (DAE)</b>. One sentence: <b>humans direct, agents type.</b> Engineers own architecture, behavior decisions, and verification; agents do the keystrokes. Discipline lives in contracts at every layer — not in good intentions.
-<br><br>
-
-<b>WHAT THAT LOOKS LIKE</b>
+<b>Discipline lives in tools, not prompts.</b> Discipline that lives in a prompt erodes; discipline that lives in independent scripts the agent has to run and pass doesn't. Every checkpoint in DAE's pipeline is gated by a tool:
 <br><br>
 
 <ul>
-<li>A <b>charter</b> — the binding design agreement every checkpoint enforces.</li>
-<li>An <b>8-checkpoint pipeline</b> per feature — each checkpoint with a <i>verifiable</i> exit contract, not a vibe. A stage is done only when a tool says so.</li>
-<li><b>Verification independence</b> — the agent that wrote the code is never the one that signs it off.</li>
-<li><b>Context resilience</b> — prefer fresh, checkpoint-scoped runs over marathon agents; re-anchor after every compaction.</li>
-<li>A <b>charter architecture fitness tool</b> — your layering and convention rules, checked like a test.</li>
-<li><b>Test impact analysis</b> — change a file, run only the scenarios it actually affects.</li>
+<li><code>dae_handoff.py</code> — handoff-as-gate: a checkpoint isn't done until its handoff exists with every exit criterion met</li>
+<li><code>dae_branch.py</code> — branch hygiene at every checkpoint</li>
+<li><code>dae_arch.py</code> — charter architecture fitness (layering, cycles, naming, file size)</li>
+<li><code>dae_dup.py</code> — project-wide duplicate detection fed into Refine's Reuse lens</li>
+<li><code>dae_mutmap.py</code> — differential mutation testing (re-mutate only what changed)</li>
+<li><code>dae_impact.py</code> — test impact analysis on the acceptance pipeline</li>
+<li><code>dae_progress.py</code> — pipeline breadcrumb at every Step 0</li>
 </ul>
 
-Every one of those started as a failure Uncle Bob hit in public, and became a guard rail — an independent tool, not a rule in a prompt.
+Plus skill instructions for LSP-first code lookup, four-pass AC discovery, charter-bound refinement, fresh-per-phase agent teams, and structured handoffs that the next checkpoint's entry gate verifies.
 <br><br>
 
-<b>THE KIT</b>
+<b>Where this fits in software's history.</b> Programming has always climbed the abstraction ladder — binary → assembly → high-level → frameworks → and now, with capable LLMs, <b>spec and behavior description as the next rung</b>. Nobody hand-writes opcodes anymore; nobody audits the assembly a compiler emits. The rung below is trusted because the generator is rigorous AND the inputs are checked. AI-generated code earns that same trust the same way — rigorous inputs (charter, ACs, specs, plans), checked outputs (two test streams + mutation testing + arch fitness + change risk + duplicate detection + cycle detection).
 <br><br>
 
-DAE ships as three Claude Code plugins:
+What never shifts is engineering discipline. The methodology adapts; the engineering values are constant.
+<br><br>
+
+<b>Who it's for.</b> Software engineers who know what acceptance tests are, why mutation testing matters, why architectural layering matters. Not for "build an app without code" audiences — the decisions DAE puts in front of you are engineering decisions and need engineering judgment.
+<br><br>
+
+<b>Three Claude Code plugins:</b>
 <br><br>
 
 <ul>
-<li><code>engineer</code> — the DAE pipeline: feature intake, AC discovery, spec writing, planning, refinement, verification.</li>
-<li><code>atdd</code> — Uncle Bob's acceptance pipeline: standard Gherkin specs, a project-specific test generator, two test streams.</li>
-<li><code>crap-analyzer</code> — change-risk analysis on the code you just touched.</li>
+<li><code>engineer</code> — the DAE pipeline (16 skills, 10 guardrail scripts, 214 stdlib-only tests)</li>
+<li><code>atdd</code> — acceptance test driven workflow with differential mutation testing</li>
+<li><code>crap-analyzer</code> — change-risk analysis on the code you just touched</li>
 </ul>
 
-Install it:
-<br><br>
+Install:
+<br>
 
 <pre><code>/plugin marketplace add swingerman/disciplined-agentic-engineering</code></pre>
-<br>
 
 Or read the methodology: <a href="https://github.com/swingerman/disciplined-agentic-engineering">github.com/swingerman/disciplined-agentic-engineering</a>
 <br><br>
 
-The throughline is the one Uncle Bob keeps landing on: <i>the newer things are, the more relevant the old rules become.</i> AI did not retire software-engineering discipline. It made it the bottleneck — and the thing most worth automating.
+<i>ATDD itself is an older testing practice from the XP / FIT / Fitnesse lineage (Kent Beck, Ward Cunningham, and others). Robert C. Martin's recent experiments running agent swarms on <a href="https://github.com/unclebob/empire-2025">empire-2025</a> surfaced its application as a discipline against AI agentic drift — the immediate spark for the <code>atdd</code> plugin and the broader DAE methodology.</i>
 <br><br>
 
-Full credit to Robert C. Martin. The experiments, the struggles, and the lessons are his. DAE is an attempt to make that discipline the path of least resistance.
-<br><br>
-
-#AI #SoftwareEngineering #ClaudeCode #ATDD #AgenticEngineering #UncleBob
+#AI #SoftwareEngineering #ClaudeCode #ATDD #AgenticEngineering #SpecDriven #VibeCoding
 
 </div>
 
