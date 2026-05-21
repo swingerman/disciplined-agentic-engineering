@@ -7,7 +7,7 @@
 
 > ℹ️ **Repo renamed:** this marketplace was previously `swingerman/atdd`. Existing `swingerman/atdd` URLs continue to work via GitHub's automatic redirect — no action needed unless you want to update local remotes (`git remote set-url origin https://github.com/swingerman/disciplined-agentic-engineering.git`).
 
-A Claude Code marketplace hosting the **Disciplined Agentic Engineering (DAE)** methodology kit — skills, agents, hooks, slash commands, and deterministic guardrail tools that keep software engineers in charge of architecture, behavior decisions, and verification while AI agents do the typing. Built around **Acceptance Test Driven Development (ATDD)**, **Spec-Driven Development (SDD)**, and **mutation testing**, with a per-feature workspace contract inspired by [GitHub's Speckit](https://github.com/github/spec-kit).
+A Claude Code marketplace hosting the **Disciplined Agentic Engineering (DAE)** methodology kit — skills, agents, hooks, slash commands, and deterministic guardrail tools that keep software engineers in charge of architecture, behavior decisions, and verification while AI agents do the typing. Built around **Acceptance Test Driven Development (ATDD)**, **mutation testing**, and the **iterative, layered specification** pattern of [GitHub's Speckit](https://github.com/github/spec-kit).
 
 ## What is Disciplined Agentic Engineering?
 
@@ -39,7 +39,7 @@ If you're shipping something quick and disposable, vibe coding is fine. If you'r
 DAE synthesizes four sources:
 
 - **ATDD** (Robert C. Martin / Uncle Bob) — Given/When/Then specs as the behavior contract; the two-test-stream discipline (acceptance + unit); mutation testing as the test-quality firewall.
-- **[Speckit](https://github.com/github/spec-kit)** — Spec-driven agentic development. DAE adopts Speckit's per-feature numbered-folder convention as its workspace contract: every feature lives in `features/NNN-slug/`, with `feature.md` (Ready) → `acs.md` → `spec.md` → `plan.md` → `progress.md` evolving through the pipeline alongside `handoffs/` and `.build/`.
+- **[Speckit](https://github.com/github/spec-kit)** — Spec-driven agentic development. DAE adopts Speckit's central insight that **specification is iterative and layered, not a one-shot document**. Each DAE feature evolves through a sequence of progressively-sharper specs: `feature.md` (intent — the Ready contract) → `acs.md` (behavior in domain language) → `spec.md` (Gherkin — executable) → `plan.md` (architecture). Each layer is reviewed and approved before the next is written; each constrains and informs the layers below. The per-feature folder is the workspace that holds these layers (and the `handoffs/` + `.build/` they accumulate) together.
 - **[Acceptance Pipeline Specification](https://github.com/unclebob/Acceptance-Pipeline-Specification)** (Uncle Bob, 2026) — Portable acceptance pipeline: Gherkin → JSON IR → generated tests → runner; mutation as IR-level sidecar.
 - **Claude Code's stock `/simplify`** — The three-subagent parallel review pattern (Reuse / Quality / Efficiency). DAE's `refine` (Checkpoint 6) is modeled on this skill, adding two layers on top: charter validation of every proposal (charter-violating proposals are rejected internally, never shown) and graceful breaking-change classification.
 
@@ -78,7 +78,7 @@ claude --plugin-dir ./disciplined-agentic-engineering
 
 ## The `engineer` plugin (DAE methodology)
 
-The DAE pipeline operates on **features** — Speckit-style numbered folders. Each feature runs through 8 checkpoints:
+The DAE pipeline operates on **features** — each a numbered folder accumulating an iterative stack of specs (feature → ACs → Gherkin spec → plan), Speckit-style. Each feature runs through 8 checkpoints:
 
 ```
 0 Onboard → 1.5 Ready (feature.md) → 2 ACs → 3 Spec → 4 Plan → 5 Implement → 6 Refine → 7 Light Verify → 8 Hardening (optional)
@@ -391,7 +391,7 @@ The `atdd` plugin is an implementation of Robert C. Martin's (Uncle Bob) Accepta
 - [Acceptance Pipeline Specification](https://github.com/unclebob/Acceptance-Pipeline-Specification) — Portable acceptance pipeline spec that DAE adopts
 - His public writings and tweets on ATDD, SDD, and AI-assisted development — including the swarm-failure observations that drove DAE's deterministic-guardrail philosophy and the differential-mutation post that shaped `dae_mutmap.py`
 
-The `engineer` plugin synthesizes Uncle Bob's ATDD with **[Speckit](https://github.com/github/spec-kit)'s per-feature numbered-folder convention** and adds DAE-specific elements: the Ready contract, autonomy levels, verification independence, the structured handoff / exit-criteria contract, the deterministic guardrail tools (`dae_*.py`), and integration with `crap-analyzer` for change-risk analysis.
+The `engineer` plugin synthesizes Uncle Bob's ATDD with **[Speckit](https://github.com/github/spec-kit)'s iterative, layered specification pattern** — every feature progresses through a stack of progressively-sharper spec artifacts (intent → ACs → Gherkin → plan), each approved before the next — and adds DAE-specific elements: the Ready contract, autonomy levels, verification independence, the structured handoff / exit-criteria contract, the deterministic guardrail tools (`dae_*.py`), and integration with `crap-analyzer` for change-risk analysis.
 
 This marketplace does not contain any code from empire-2025 or other upstream projects. It adapts the methodology for use as Claude Code plugins.
 
