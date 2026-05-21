@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Disciplined Agentic Engineering — a methodology kit for Claude Code: the engineer, atdd, and crap-analyzer plugins, grounded in Uncle Bob's acceptance-test approach",
-    "version": "1.4.0"
+    "version": "1.5.0"
   },
   "plugins": [
     {
