@@ -295,6 +295,16 @@ def validate_manifest(manifest):
                 errors.append(
                     "validation.feature_flags.tool = %r -- must be one of %s"
                     % (tool, sorted(FEATURE_FLAG_TOOLS)))
+        clis = val.get("clis")
+        if isinstance(clis, dict):
+            for field in ("available", "suggested"):
+                v = clis.get(field)
+                if v is None:
+                    continue
+                if not isinstance(v, list) or not all(isinstance(x, str) for x in v):
+                    errors.append(
+                        "validation.clis.%s = %r -- must be a list of strings"
+                        % (field, v))
 
     autonomy = manifest.get("autonomy")
     if isinstance(autonomy, dict):

@@ -364,5 +364,34 @@ class ValidationFeatureFlagsTests(unittest.TestCase):
         dr.validate_manifest(m)
 
 
+class ValidationClisTests(unittest.TestCase):
+    def test_lists_of_strings_are_valid(self):
+        m = dr.read_manifest(
+            "validation:\n"
+            "  clis:\n"
+            "    available: [gh, kubectl, jq]\n"
+            "    suggested: [terraform, gcloud]\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertFalse(any("validation.clis" in e for e in errors),
+                         "expected to be valid; got %r" % (errors,))
+
+    def test_non_list_available_is_rejected(self):
+        m = dr.read_manifest(
+            "validation:\n  clis:\n    available: gh\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertTrue(any("validation.clis.available" in e for e in errors))
+
+    def test_non_list_suggested_is_rejected(self):
+        m = dr.read_manifest(
+            "validation:\n  clis:\n    suggested: terraform\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertTrue(any("validation.clis.suggested" in e for e in errors))
+
+    def test_absent_is_valid(self):
+        m = dr.read_manifest("paths:\n  features: features\n")
+        errors, _ = dr.validate_manifest(m)
+        self.assertFalse(any("validation.clis" in e for e in errors))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
