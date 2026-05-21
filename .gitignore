@@ -1,7 +1,9 @@
 .DS_Store
 *.swp
 *.swo
-linkedin-post.html
+# Marketing drafts — source of truth lives in Notion ("DAE — Marketing & Launch")
+linkedin-*.html
+twitter-*.md
 social-preview.jpg
 social-preview.png
 
