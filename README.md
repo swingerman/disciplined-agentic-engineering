@@ -13,9 +13,28 @@ A Claude Code marketplace hosting the **Disciplined Agentic Engineering (DAE)** 
 
 DAE is a methodology for **engineering-led AI development**. AI agents do the coding; software engineers stay in charge of architecture, performance, and feature validation. Discipline lives in the contracts at every layer (charter → ACs → specs → plans → verification) and in **deterministic guardrail tools** that gate every checkpoint — not in prompt rules that erode over long agent runs.
 
-It's positioned in direct opposition to the failure mode of *loose-boundary, weak-check agentic engineering* — AI tools that produce code with no charter, no behavior contract, and no verification gates. DAE makes the boundaries explicit and the checks continuous.
+It's positioned in direct opposition to **vibe coding** — the loose-prompt, weak-check style of agentic development where AI produces code with no charter, no behavior contract, and no verification gates. DAE makes the boundaries explicit and the checks continuous.
 
 **The headline outcome: semantic stability.** ATDD + mutation testing together form a *semantic firewall* — code can be refactored, extended, or modified by agents without the system's intended behavior drifting. This is the moat between DAE-built systems and "AI plops code around."
+
+### DAE vs. vibe coding
+
+**Vibe coding** is the rising practice of prompting an AI agent loosely — *"build me a thing that does X"* — accepting whatever comes back, running it, patching when something feels off. No charter to obey, no behavior contract to satisfy, no verification gates to pass. Fast at first; brittle over time. The codebase drifts; tests pass without proving anything; regressions surface as users find them.
+
+**DAE is the deliberate opposite.** Every feature has a charter to obey, a Ready contract for what's being built, ACs in domain language, a Gherkin spec the human can read and defend, an architecture plan the human approves before code is written, two test streams that must both go green, mutation testing that proves the tests catch bugs, and deterministic guardrail tools that gate every transition. The human stays the engineer; the agent stays the typist.
+
+| | Vibe coding | Disciplined Agentic Engineering |
+|---|---|---|
+| **Architecture** | emerges from prompts | engineered upfront; `CHARTER.md` enforced by `arch-check` (layering, cycles, forbidden patterns, naming, file size) |
+| **Behavior contract** | "what the agent built" | ACs + Gherkin specs, human-approved, leakage-checked by `spec-guardian` |
+| **Verification** | run it, see if it works | two test streams (acceptance + unit) + change-risk (`crap-analyzer`) + mutation testing |
+| **Gates** | none | `dae_handoff.py` (handoff-as-gate), `dae_branch.py` (branch hygiene), `dae_arch.py`, `dae_dup.py`, exit criteria per checkpoint |
+| **Refactoring safety** | tests may not catch regressions | mutation-tested test suite = *semantic firewall* |
+| **Autonomy** | implicit; drifts | explicit per-feature level, manifest-constrained, charter-bound |
+| **Discipline lives in…** | a prompt (and erodes) | independent tools the agent runs (and can't talk itself out of) |
+| **Pace** | fast initially | steady; sustainable across long horizons |
+
+If you're shipping something quick and disposable, vibe coding is fine. If you're building something you intend to maintain and evolve — and you want AI agents helping without eroding what they touch — DAE is the discipline that keeps the system coherent.
 
 DAE synthesizes four sources:
 
