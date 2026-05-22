@@ -61,7 +61,7 @@ DAE synthesizes four sources:
 - **[Acceptance Pipeline Specification](https://github.com/unclebob/Acceptance-Pipeline-Specification)** (Uncle Bob, 2026) — Portable acceptance pipeline: Gherkin → JSON IR → generated tests → runner; mutation as IR-level sidecar.
 - **Claude Code's stock `/simplify`** — The three-subagent parallel review pattern (Reuse / Quality / Efficiency). DAE's `refine` (Checkpoint 6) is modeled on this skill, adding two layers on top: charter validation of every proposal (charter-violating proposals are rejected internally, never shown) and graceful breaking-change classification.
 
-DAE sharpens these into a single workflow. The full methodology spec lives in [Notion](https://www.notion.so/3505ecdee0e281b297c8d9c07ec6dad6).
+DAE sharpens these into a single workflow.
 
 ## Plugins in this marketplace
 
@@ -220,7 +220,7 @@ Every feature carries an explicit **autonomy level** — how much the agent deci
 
 Skills consult the autonomy level to decide how much to ask vs. proceed. `plan` always asks the human to confirm the Architecture section — charter-decision territory — regardless of level; but at higher autonomy the rest of the plan drafts straight through. At lower autonomy, more decisions pause for human approval and surface in the handoff's `human_action_needed` field, so the orchestrator (`next`) knows what's blocked.
 
-The autonomy dial is what makes the methodology workable across a spectrum from "I want to review every line" to "agent, go cook." See [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) for the level schema and path-override rules.
+The autonomy dial is what makes the methodology workable across a spectrum from "I want to review every line" to "agent, go cook." The level schema and path-override rules are validated by `dae_resolve.py` and consumed by every checkpoint skill.
 
 ### Infrastructure — the deterministic guardrails
 
@@ -239,14 +239,13 @@ Stdlib-only Python scripts in `engineer/scripts/` that enforce the methodology c
 | `dae_gherkin.py` | Portable Gherkin → IR parser for the acceptance pipeline |
 | `dae_tracker_local.py` | The local tracker driver (feature folders as the source of truth) |
 
-### Methodology references
+### Learning the methodology
 
-The full methodology (principles, handoff map, autonomy levels, foundation contracts) lives in Notion:
+This README is the overview. The canonical, in-repo detail lives in:
 
-- **[DAE methodology page](https://www.notion.so/3505ecdee0e281b297c8d9c07ec6dad6)** — overview
-- **[Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207)** — schemas, paths, conventions every skill consumes
-- **[Discuss & Upstream Funnel Foundation](https://www.notion.so/35a5ecdee0e281eaa35fced0c4e23384)** — on-ramp contracts
-- **[Tracker Integration Foundation](https://www.notion.so/35a5ecdee0e28168b1aee324c267fd13)** — driver abstraction, sync direction
+- **`engineer/skills/*/SKILL.md`** — each skill documents its checkpoint, workflow, and exit contract.
+- **`engineer/references/`** — the shared contracts: `handoff-summary.md`, `progress-indicator.md`, `code-lookup.md`, `cli-probe.md`, `differential-mutation.md`, and more.
+- **`CHARTER.md` + `.engineer/manifest.yml`** — produced per project by `onboard`; the binding design agreement and the machine-readable config every checkpoint consumes.
 
 ---
 
