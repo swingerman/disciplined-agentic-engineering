@@ -29,52 +29,31 @@ def _num(val):
         return None
 
 
-def _frontmatter(text):
-    """The YAML frontmatter block as a list of lines ([] if none)."""
-    return (dae_resolve.extract_frontmatter(text) or "").splitlines()
-
-
-def _parse_criteria(lines, start):
-    """Parse a YAML `exit_criteria:` list-of-dicts block beginning at `start`.
-
-    Returns (next_index, [{"met": bool|None}, ...]).
-    """
-    out = []
-    i = start
-    while i < len(lines):
-        line = lines[i]
-        if line.strip() == "":
-            i += 1
-            continue
-        if not (line.startswith(" ") or line.startswith("\t")):
-            break  # an unindented key ends the block
-        stripped = line.strip()
-        if stripped.startswith("- "):
-            out.append({"met": None})
-            stripped = stripped[2:].strip()
-        m = re.match(r"(\w+):\s*(.*)$", stripped)
-        if m and m.group(1) == "met" and out:
-            out[-1]["met"] = m.group(2).strip().lower() == "true"
-        i += 1
-    return i, out
-
-
 def parse_handoff(text):
     """Parse a handoff .md into {checkpoint, status, exit_criteria}."""
-    fm = _frontmatter(text)
     rec = {"checkpoint": None, "status": None, "exit_criteria": []}
-    i = 0
-    while i < len(fm):
-        m = re.match(r"(\w+):\s*(.*)$", fm[i])
-        if m and m.group(1) == "checkpoint":
-            val = m.group(2).strip()
-            rec["checkpoint"] = None if val in ("", "null", "~") else _num(val)
-        elif m and m.group(1) == "status":
-            rec["status"] = m.group(2).strip()
-        elif m and m.group(1) == "exit_criteria":
-            i, rec["exit_criteria"] = _parse_criteria(fm, i + 1)
-            continue
-        i += 1
+    fm = dae_resolve.extract_frontmatter(text)
+    if not fm:
+        return rec
+    try:
+        data = dae_resolve.read_manifest(fm)
+    except dae_resolve.ManifestError:
+        return rec
+    if not isinstance(data, dict):
+        return rec
+    cp = data.get("checkpoint")
+    if cp is not None and cp not in ("", "null", "~"):
+        rec["checkpoint"] = cp if isinstance(cp, (int, float)) else _num(str(cp))
+    status = data.get("status")
+    rec["status"] = status if isinstance(status, str) else None
+    raw_criteria = data.get("exit_criteria")
+    if isinstance(raw_criteria, list):
+        for entry in raw_criteria:
+            if isinstance(entry, dict):
+                met = entry.get("met")
+                # YAML parses true/false to Python bools; normalize.
+                rec["exit_criteria"].append(
+                    {"met": True if met is True else (False if met is False else None)})
     return rec
 
 

@@ -154,5 +154,81 @@ class TestGate(unittest.TestCase):
         self.assertIn("3", msg)
 
 
+class BlockScalarEvidenceTests(unittest.TestCase):
+    def test_six_criteria_with_bullet_evidence_blocks_all_count(self):
+        # Reproducer for the image-titler CP8 handoff bug: each criterion's
+        # `evidence: |` block contains `- ` bullets. The parser must count
+        # exactly six criteria, all met: true.
+        text = """---
+skill: atdd-mutate
+checkpoint: 8
+status: complete
+exit_criteria:
+  - criterion: "Mutation testing tooling installed"
+    verified_by: tool
+    met: true
+    evidence: |
+      - jscpd 4.x installed via npm
+      - configured against src/
+  - criterion: "Two test streams green before mutating"
+    verified_by: tool
+    met: true
+    evidence: |
+      - acceptance: 14/14 passing
+      - unit: 47/47 passing
+  - criterion: "Mutation score >= 70%"
+    verified_by: tool
+    met: true
+    evidence: |
+      - score: 88%
+      - killed: 132 / survived: 18
+  - criterion: "Surviving mutants triaged"
+    verified_by: human
+    met: true
+    evidence: |
+      - 12 equivalent (no behavior change)
+      - 6 documented in handoff
+  - criterion: "Mutation report written"
+    verified_by: tool
+    met: true
+    evidence: |
+      - features/015/handoffs/2026-05-22-mutate.md
+  - criterion: "agent_id differs from implementer"
+    verified_by: tool
+    met: true
+    evidence: |
+      - implementer: aXX; this run: bYY
+---
+
+body text
+"""
+        rec = dh.parse_handoff(text)
+        self.assertEqual(rec["checkpoint"], 8)
+        self.assertEqual(rec["status"], "complete")
+        self.assertEqual(len(rec["exit_criteria"]), 6,
+                         "expected exactly 6 criteria; got %r" % (rec["exit_criteria"],))
+        self.assertTrue(all(c["met"] is True for c in rec["exit_criteria"]))
+        self.assertTrue(dh._rec_complete(rec))
+
+    def test_list_valued_evidence_does_not_create_phantom_criteria(self):
+        # Variant: evidence as a real nested list (no | block scalar). Should
+        # also parse as a single criterion with a list-valued evidence.
+        text = """---
+checkpoint: 7
+status: complete
+exit_criteria:
+  - criterion: "first"
+    met: true
+    evidence:
+      - bullet a
+      - bullet b
+---
+body
+"""
+        rec = dh.parse_handoff(text)
+        self.assertEqual(len(rec["exit_criteria"]), 1)
+        self.assertTrue(rec["exit_criteria"][0]["met"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
