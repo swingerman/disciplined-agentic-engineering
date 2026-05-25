@@ -324,10 +324,9 @@ class BlockerRuleScenarios(FixE2EBase):
         self.assertFalse(dae_fix.has_unresolved_blockers(rec))
         self.assertTrue(dae_fix.close_ready(rec))
 
-        # category=none is advisory → produces one consolidation placeholder entry
+        # category=none is "explicitly nothing to learn" — no consolidation entry
         entries = dae_fix.render_consolidation_entries(rec)
-        self.assertEqual(len(entries), 1)
-        self.assertIn("none", entries[0])
+        self.assertEqual(entries, [])
 
         # Closure render sanity
         closure = dae_fix.render_fix_closure_entry(rec, {"advisory": 0, "blocker_applied": 0})

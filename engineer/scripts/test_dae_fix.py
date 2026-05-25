@@ -839,6 +839,19 @@ class TestRenderConsolidationEntries(unittest.TestCase):
         entries = dae_fix.render_consolidation_entries(rec)
         self.assertEqual(entries, [])
 
+    def test_category_none_excluded(self):
+        """category: 'none' = 'explicitly nothing to learn' → no consolidation entry"""
+        rec = {
+            "slug": "2026-05-25-trivial-typo",
+            "blocks_user": False,
+            "workaround": "",
+            "gap_analysis": [
+                {"category": "none", "finding": "trivial typo, no methodology gap"},
+            ],
+        }
+        entries = dae_fix.render_consolidation_entries(rec)
+        self.assertEqual(entries, [])
+
 
 if __name__ == "__main__":
     unittest.main()

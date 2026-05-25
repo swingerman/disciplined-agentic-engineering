@@ -539,6 +539,8 @@ def render_consolidation_entries(rec: dict) -> list:
         - [ ] [inadequate_verification] Add scenario "cache invalidation on 401 from upstream" — `features/058-cache-layer/specs/cache.spec.md` (from fix `2026-05-25-stale-cache-on-401`)
 
     Empty list if rec has no advisory followups, or no gap_analysis at all.
+    `category: none` entries are also excluded — "none" means "explicitly
+    nothing to learn here" and shouldn't land in the backlog.
 
     Uses the existing blocker_categories(rec) helper to determine which
     findings are advisory vs blocker.
@@ -556,6 +558,8 @@ def render_consolidation_entries(rec: dict) -> list:
             continue
         category = item.get("category") or "unknown"
         if category in blockers:
+            continue
+        if category == "none":
             continue
         followup = item.get("followup") or {}
         action = followup.get("action") or "Review finding"
