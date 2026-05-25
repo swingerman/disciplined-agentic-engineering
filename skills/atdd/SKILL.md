@@ -8,7 +8,6 @@ description: >-
   triggered by the /atdd command. Enforces the Acceptance Test Driven
   Development workflow: write Given/When/Then specs before code, generate
   a project-specific test pipeline, and maintain two test streams.
-version: 0.6.0
 ---
 
 # Acceptance Test Driven Development
