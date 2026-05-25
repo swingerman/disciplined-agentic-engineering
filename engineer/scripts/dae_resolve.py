@@ -32,6 +32,7 @@ Exit codes:
 
 import json
 import os
+import re
 import sys
 
 KNOWN_METHODOLOGY_VERSIONS = {"0.1", "0.2"}
@@ -46,6 +47,8 @@ GIT_MANUAL_VALUES = {True, False}
 DUPLICATION_TOOLS = {"jscpd", "pmd-cpd", "flay", "dupl"}
 DUPLICATION_SKIP_VALUES = {True, False}
 FEATURE_FLAG_TOOLS = {"launchdarkly", "unleash", "flagsmith", "growthbook", "other"}
+
+_BLOCK_HEADER_RE = re.compile(r'^([\w.-]+):\s*([|>])\s*$')
 
 
 class ManifestError(Exception):
@@ -76,15 +79,61 @@ def _strip_comment(line):
 
 
 def _tokenize(text):
-    """Text -> [(indent, content), ...] with comments and blank lines removed."""
-    lines = []
-    for raw in text.splitlines():
-        body = _strip_comment(raw)
-        if not body.strip():
+    """Text -> [(indent, content, block_value), ...] with comments and blank lines
+    removed. block_value is None for normal lines; a string for block-scalar
+    (| or >) value lines."""
+    raw_lines = text.splitlines()
+    out = []
+    i = 0
+    while i < len(raw_lines):
+        raw = raw_lines[i]
+        if not raw.strip() or raw.lstrip().startswith('#'):
+            i += 1
             continue
-        indent = len(body) - len(body.lstrip(' '))
-        lines.append((indent, body.strip()))
-    return lines
+        line_indent = len(raw) - len(raw.lstrip())
+        content = _strip_comment(raw.rstrip())
+        if not content:
+            i += 1
+            continue
+        content_stripped = content.strip()
+        m = _BLOCK_HEADER_RE.match(content_stripped)
+        if m:
+            key, marker = m.group(1), m.group(2)
+            scalar_raw = []
+            j = i + 1
+            while j < len(raw_lines):
+                nxt = raw_lines[j]
+                if not nxt.strip():
+                    scalar_raw.append('')
+                    j += 1
+                    continue
+                nxt_indent = len(nxt) - len(nxt.lstrip())
+                if nxt_indent <= line_indent:
+                    break
+                scalar_raw.append(nxt)
+                j += 1
+            base = None
+            for sl in scalar_raw:
+                if sl.strip():
+                    base = len(sl) - len(sl.lstrip())
+                    break
+            if base is None:
+                base = line_indent + 2
+            stripped = []
+            for sl in scalar_raw:
+                if sl.strip():
+                    stripped.append(sl[base:] if len(sl) >= base else sl.lstrip())
+                else:
+                    stripped.append('')
+            scalar = '\n'.join(stripped).strip('\n')
+            if marker == '>':
+                scalar = ' '.join(line for line in scalar.split('\n')).strip()
+            out.append((line_indent, key + ":", scalar))
+            i = j
+            continue
+        out.append((line_indent, content_stripped, None))
+        i += 1
+    return out
 
 
 def _parse_scalar(s):
@@ -124,9 +173,14 @@ def _parse_block(lines, i, indent):
 def _parse_map(lines, i, indent):
     result = {}
     while i < len(lines):
-        line_indent, content = lines[i]
+        line_indent, content, block_value = lines[i]
         if line_indent != indent or content.startswith('- '):
             break
+        if block_value is not None:
+            key = content.rstrip(":").strip()
+            result[key] = block_value
+            i += 1
+            continue
         key, sep, val = content.partition(':')
         if not sep:
             raise ManifestError("expected 'key: value', got: %r" % content)
@@ -147,7 +201,7 @@ def _parse_map(lines, i, indent):
 def _parse_list(lines, i, indent):
     result = []
     while i < len(lines):
-        line_indent, content = lines[i]
+        line_indent, content, _ = lines[i]
         if line_indent != indent or not content.startswith('- '):
             break
         item = content[2:].strip()

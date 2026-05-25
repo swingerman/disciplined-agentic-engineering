@@ -393,5 +393,45 @@ class ValidationClisTests(unittest.TestCase):
         self.assertFalse(any("validation.clis" in e for e in errors))
 
 
+class BlockScalarTests(unittest.TestCase):
+    def test_literal_block_scalar(self):
+        m = dr.read_manifest("key: |\n  line1\n  line2\n")
+        self.assertEqual(m["key"], "line1\nline2")
+
+    def test_folded_block_scalar(self):
+        m = dr.read_manifest("key: >\n  line1\n  line2\n")
+        self.assertEqual(m["key"], "line1 line2")
+
+    def test_bullet_in_literal_block_scalar_is_text(self):
+        # The bug reproducer: `- ` inside `|` is opaque text, NOT a list.
+        m = dr.read_manifest("key: |\n  - one\n  - two\n")
+        self.assertEqual(m["key"], "- one\n- two")
+
+    def test_block_scalar_followed_by_sibling_key(self):
+        m = dr.read_manifest("a: |\n  inner\nb: 2\n")
+        self.assertEqual(m["a"], "inner")
+        self.assertEqual(m["b"], 2)
+
+    def test_hash_inside_block_scalar_is_content_not_comment(self):
+        m = dr.read_manifest("note: |\n  TODO # follow up\n")
+        self.assertEqual(m["note"], "TODO # follow up")
+
+    def test_block_scalar_inside_a_list_entry(self):
+        text = (
+            "items:\n"
+            "  - name: first\n"
+            "    body: |\n"
+            "      - bullet a\n"
+            "      - bullet b\n"
+            "  - name: second\n"
+            "    body: |\n"
+            "      hello world\n"
+        )
+        m = dr.read_manifest(text)
+        self.assertEqual(len(m["items"]), 2)
+        self.assertEqual(m["items"][0]["body"], "- bullet a\n- bullet b")
+        self.assertEqual(m["items"][1]["body"], "hello world")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
