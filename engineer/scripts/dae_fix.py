@@ -467,6 +467,57 @@ def list_open_fixes(root):
     return result
 
 
+def render_fix_closure_entry(rec, followups_summary=None):
+    """Render the markdown block to append to a feature's progress.md when a fix closes.
+
+    Args:
+        rec: a parsed fix artifact dict (from parse_fix)
+        followups_summary: optional {"advisory": int, "blocker_applied": int} counts
+                           for the closure report. If None, omits that line.
+
+    Returns:
+        A markdown string ending in a blank line. Shape:
+
+        ## Fix applied — 2026-05-25-stale-cache-on-401
+        - Severity: high; user-blocking: yes; workaround: none
+        - Followups: 2 advisory, 1 blocker applied inline
+        - See `.engineer/fixes/2026-05-25-stale-cache-on-401.md`
+
+        Fields adjust to what's in rec — if blocks_user is False, the bullet
+        reads "user-blocking: no" with no workaround mention. If followups_summary
+        is None, omit the followups bullet.
+    """
+    slug = rec.get("slug") or "unknown"
+    severity = rec.get("severity") or "unknown"
+    blocks_user = rec.get("blocks_user")
+
+    # Build the severity/blocking line
+    if blocks_user:
+        workaround = rec.get("workaround") or "none"
+        blocking_part = "user-blocking: yes; workaround: %s" % workaround
+    else:
+        blocking_part = "user-blocking: no"
+
+    lines = [
+        "## Fix applied — %s" % slug,
+        "- Severity: %s; %s" % (severity, blocking_part),
+    ]
+
+    # Optional followups line
+    if followups_summary is not None:
+        advisory = followups_summary.get("advisory", 0)
+        blocker_applied = followups_summary.get("blocker_applied", 0)
+        lines.append(
+            "- Followups: %d advisory, %d blocker applied inline"
+            % (advisory, blocker_applied)
+        )
+
+    lines.append("- See `.engineer/fixes/%s.md`" % slug)
+    lines.append("")  # trailing blank line
+
+    return "\n".join(lines)
+
+
 def main(argv):
     if not argv or argv[0] in ("-h", "--help"):
         print(__doc__)

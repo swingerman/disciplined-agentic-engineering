@@ -29,6 +29,19 @@ When the foundations say "the agentic summary contract handles propagation," thi
 
 **progress-log does NOT emit a handoff summary** — it is the single exception to the agentic summary contract. It is the mechanism that *processes* handoffs; emitting one would trigger another progress-log run, looping. Its record of work is the `progress.md` "Tracker sync" line. (Documented in the Foundation Design.)
 
+## Logging a fix closure
+
+When the `fix` skill reaches its Close step, append the rendered closure entry
+to each `feature_refs[*]/progress.md` of the fix artifact.
+
+Use `${CLAUDE_PLUGIN_ROOT}/scripts/dae_fix.py` helper `render_fix_closure_entry(rec, followups_summary)`
+to build the entry. Append it to each affected feature's progress.md under a new
+H2 section (the helper produces a complete H2 + bullets block).
+
+Fix closures use the same propagation contract as feature handoffs: visible at
+the feature level so contributors browsing that feature see the bug history
+without having to discover `.engineer/fixes/`.
+
 ## References
 
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — `progress.md` schema, agentic summary contract + this exemption (Section 5)

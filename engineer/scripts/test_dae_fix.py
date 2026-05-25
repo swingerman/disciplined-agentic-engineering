@@ -643,5 +643,69 @@ Body
             self.assertEqual(fixes, [])
 
 
+class TestRenderFixClosureEntry(unittest.TestCase):
+    """Tests for render_fix_closure_entry function"""
+
+    def test_render_fix_closure_entry_full_happy_path(self):
+        """Scenario 19a: full happy path — all fields present"""
+        rec = {
+            "slug": "2026-05-25-stale-cache-on-401",
+            "severity": "high",
+            "blocks_user": True,
+            "workaround": "none",
+        }
+        followups_summary = {"advisory": 2, "blocker_applied": 1}
+        result = dae_fix.render_fix_closure_entry(rec, followups_summary)
+
+        self.assertIn("## Fix applied — 2026-05-25-stale-cache-on-401", result)
+        self.assertIn("Severity: high", result)
+        self.assertIn("user-blocking: yes", result)
+        self.assertIn("workaround: none", result)
+        self.assertIn("2 advisory, 1 blocker applied inline", result)
+        self.assertIn("`.engineer/fixes/2026-05-25-stale-cache-on-401.md`", result)
+        self.assertTrue(result.endswith("\n"))
+
+    def test_render_fix_closure_entry_blocks_user_false(self):
+        """Scenario 19b: blocks_user False — reads 'user-blocking: no', no workaround"""
+        rec = {
+            "slug": "2026-05-20-minor-glitch",
+            "severity": "low",
+            "blocks_user": False,
+            "workaround": "restart the app",
+        }
+        result = dae_fix.render_fix_closure_entry(rec, {"advisory": 0, "blocker_applied": 0})
+
+        self.assertIn("user-blocking: no", result)
+        self.assertNotIn("workaround", result)
+
+    def test_render_fix_closure_entry_no_followups_summary(self):
+        """Scenario 19c: followups_summary None — followups bullet absent"""
+        rec = {
+            "slug": "2026-05-22-null-ptr",
+            "severity": "medium",
+            "blocks_user": False,
+        }
+        result = dae_fix.render_fix_closure_entry(rec, None)
+
+        self.assertNotIn("Followups", result)
+        self.assertIn("## Fix applied — 2026-05-22-null-ptr", result)
+        self.assertIn("`.engineer/fixes/2026-05-22-null-ptr.md`", result)
+
+    def test_render_fix_closure_entry_minimal_artifact(self):
+        """Scenario 19d: minimal artifact (only slug + severity) — renders without crashing"""
+        rec = {
+            "slug": "2026-01-01-minimal",
+            "severity": "critical",
+            "blocks_user": None,
+            "workaround": None,
+        }
+        result = dae_fix.render_fix_closure_entry(rec)
+
+        self.assertIn("## Fix applied — 2026-01-01-minimal", result)
+        self.assertIn("Severity: critical", result)
+        self.assertIn("`.engineer/fixes/2026-01-01-minimal.md`", result)
+        self.assertTrue(result.endswith("\n"))
+
+
 if __name__ == "__main__":
     unittest.main()
