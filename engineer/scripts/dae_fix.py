@@ -518,6 +518,55 @@ def render_fix_closure_entry(rec, followups_summary=None):
     return "\n".join(lines)
 
 
+def render_consolidation_entries(rec: dict) -> list:
+    """Render markdown entries to append to .engineer/consolidation.md for the
+    advisory (non-blocker) followups in this fix's gap_analysis.
+
+    Args:
+        rec: a parsed fix artifact dict (from parse_fix)
+
+    Returns:
+        A list of markdown entries (one per advisory followup). Each entry is
+        self-contained and ready to append. Blocker followups are NOT included
+        (those must be applied inline before close; they don't land in the
+        backlog).
+
+    Each entry shape:
+
+        - [ ] [<category>] <action> — `<target>` (from fix `<slug>`)
+
+    Example:
+        - [ ] [inadequate_verification] Add scenario "cache invalidation on 401 from upstream" — `features/058-cache-layer/specs/cache.spec.md` (from fix `2026-05-25-stale-cache-on-401`)
+
+    Empty list if rec has no advisory followups, or no gap_analysis at all.
+
+    Uses the existing blocker_categories(rec) helper to determine which
+    findings are advisory vs blocker.
+    """
+    gap_analysis = rec.get("gap_analysis") or []
+    if not gap_analysis:
+        return []
+
+    slug = rec.get("slug") or "unknown"
+    blockers = set(blocker_categories(rec))
+
+    entries = []
+    for item in gap_analysis:
+        if not isinstance(item, dict):
+            continue
+        category = item.get("category") or "unknown"
+        if category in blockers:
+            continue
+        followup = item.get("followup") or {}
+        action = followup.get("action") or "Review finding"
+        target = followup.get("target") or "unknown"
+        entries.append(
+            "- [ ] [%s] %s — `%s` (from fix `%s`)" % (category, action, target, slug)
+        )
+
+    return entries
+
+
 def main(argv):
     if not argv or argv[0] in ("-h", "--help"):
         print(__doc__)

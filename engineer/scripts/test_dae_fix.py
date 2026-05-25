@@ -707,5 +707,138 @@ class TestRenderFixClosureEntry(unittest.TestCase):
         self.assertTrue(result.endswith("\n"))
 
 
+class TestRenderConsolidationEntries(unittest.TestCase):
+    """Tests for render_consolidation_entries function"""
+
+    def test_happy_path_two_advisory_one_blocker(self):
+        """Scenario: 2 advisory + 1 blocker → 2 entries (blocker excluded)"""
+        rec = {
+            "slug": "2026-05-25-stale-cache-on-401",
+            "blocks_user": False,
+            "workaround": None,
+            "gap_analysis": [
+                {
+                    "category": "missing_ac",
+                    "finding": "AC missing for stale cache scenario",
+                    "followup": {
+                        "kind": "amend_ac",
+                        "target": "features/042-auth-session/acceptance-criteria.md",
+                        "action": "Add AC #4b for stale cache",
+                    },
+                },
+                {
+                    "category": "inadequate_verification",
+                    "finding": "Test skipped in CI",
+                    "followup": {
+                        "kind": "add_verification",
+                        "target": "features/058-cache-layer/specs/cache.spec.md",
+                        "action": "Add scenario cache invalidation on 401",
+                    },
+                },
+                {
+                    "category": "architecture_violation",
+                    "finding": "Cache layer reaches into auth client directly",
+                    "followup": {
+                        "kind": "tighten_arch_check",
+                        "target": "charter.md",
+                        "action": "Forbid cross-layer reach",
+                    },
+                },
+            ],
+        }
+        entries = dae_fix.render_consolidation_entries(rec)
+        self.assertEqual(len(entries), 2)
+        # blocker (architecture_violation) must NOT appear
+        self.assertFalse(any("architecture_violation" in e for e in entries))
+        # advisory categories must appear
+        self.assertTrue(any("missing_ac" in e for e in entries))
+        self.assertTrue(any("inadequate_verification" in e for e in entries))
+        # slug must appear in each entry
+        for entry in entries:
+            self.assertIn("2026-05-25-stale-cache-on-401", entry)
+        # entry format: starts with "- [ ] "
+        for entry in entries:
+            self.assertTrue(entry.startswith("- [ ] "))
+
+    def test_all_blockers_returns_empty(self):
+        """Scenario: all findings are blockers → empty list"""
+        rec = {
+            "slug": "2026-05-25-all-blockers",
+            "blocks_user": True,
+            "workaround": "none",
+            "gap_analysis": [
+                {
+                    "category": "missing_ac",
+                    "followup": {"target": "features/foo/acs.md", "action": "Add AC"},
+                },
+                {
+                    "category": "architecture_violation",
+                    "followup": {"target": "charter.md", "action": "Tighten arch"},
+                },
+            ],
+        }
+        # blocks_user=True + workaround=none promotes all to blockers
+        entries = dae_fix.render_consolidation_entries(rec)
+        self.assertEqual(entries, [])
+
+    def test_no_gap_analysis_returns_empty(self):
+        """Scenario: no gap_analysis → empty list"""
+        rec = {
+            "slug": "2026-05-25-no-gap",
+            "blocks_user": False,
+            "workaround": None,
+            "gap_analysis": [],
+        }
+        entries = dae_fix.render_consolidation_entries(rec)
+        self.assertEqual(entries, [])
+
+    def test_missing_followup_details_uses_placeholders(self):
+        """Scenario: missing followup sub-fields → placeholders used gracefully"""
+        rec = {
+            "slug": "2026-05-25-sparse-followup",
+            "blocks_user": False,
+            "workaround": None,
+            "gap_analysis": [
+                {
+                    "category": "missing_ac",
+                    # no followup key at all
+                },
+            ],
+        }
+        entries = dae_fix.render_consolidation_entries(rec)
+        self.assertEqual(len(entries), 1)
+        self.assertIn("missing_ac", entries[0])
+        self.assertIn("2026-05-25-sparse-followup", entries[0])
+        # Should not raise; should use placeholder strings
+        self.assertIn("Review finding", entries[0])
+        self.assertIn("unknown", entries[0])
+
+    def test_user_blocking_no_workaround_promotes_all_to_blockers(self):
+        """Scenario: blocks_user=True + workaround=none → even advisory categories become blockers → empty list"""
+        rec = {
+            "slug": "2026-05-25-blocking-no-workaround",
+            "blocks_user": True,
+            "workaround": "none",
+            "gap_analysis": [
+                {
+                    "category": "missing_ac",
+                    "followup": {
+                        "target": "features/042-auth/acs.md",
+                        "action": "Add missing AC",
+                    },
+                },
+                {
+                    "category": "inadequate_verification",
+                    "followup": {
+                        "target": "features/042-auth/specs/auth.spec.md",
+                        "action": "Add verification scenario",
+                    },
+                },
+            ],
+        }
+        entries = dae_fix.render_consolidation_entries(rec)
+        self.assertEqual(entries, [])
+
+
 if __name__ == "__main__":
     unittest.main()
