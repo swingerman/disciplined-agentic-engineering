@@ -1,14 +1,12 @@
 ---
 name: atdd-mutate
 description: >-
-  This skill should be used when the user asks to "run mutation testing",
-  "mutate my code", "kill mutants", "check test quality", "find surviving
-  mutants", "verify test effectiveness with mutations", "run stryker", "run
-  mutmut", "run pitest", "set up mutation testing", "how good are my tests",
-  "are my tests catching bugs", or mentions mutation testing, mutation score,
-  or mutant survival in the context of testing. It adds a third validation
-  layer to the ATDD workflow: after acceptance tests verify WHAT and unit
-  tests verify HOW, mutation testing verifies that tests actually catch bugs.
+  Use to add a third validation layer to the ATDD workflow — after acceptance
+  tests verify WHAT and unit tests verify HOW, mutation testing verifies the
+  tests actually catch bugs. Triggers — "/mutate", "/kill-mutants", "run
+  mutation testing", "mutate my code", "kill mutants", "check test quality",
+  "find surviving mutants", "run stryker", "run mutmut", "run pitest",
+  "are my tests catching bugs".
 ---
 
 # Mutation Testing

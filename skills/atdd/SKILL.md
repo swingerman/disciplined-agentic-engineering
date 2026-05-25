@@ -1,13 +1,12 @@
 ---
 name: atdd
 description: >-
-  This skill should be used when the user asks to "build a feature",
-  "implement a feature", "add functionality", "start development",
-  "write acceptance tests", "write specs", "use ATDD", "use TDD with
-  acceptance tests", or begins any feature implementation work. Also
-  triggered by the /atdd command. Enforces the Acceptance Test Driven
-  Development workflow: write Given/When/Then specs before code, generate
-  a project-specific test pipeline, and maintain two test streams.
+  Use to drive feature work through the Acceptance Test Driven Development
+  workflow — Given/When/Then specs before code, a project-specific test
+  pipeline, and two parallel test streams (acceptance + unit). Triggers —
+  "/atdd", "build a feature", "implement a feature", "add functionality",
+  "start development", "write acceptance tests", "write specs", "use ATDD",
+  "use TDD with acceptance tests".
 ---
 
 # Acceptance Test Driven Development

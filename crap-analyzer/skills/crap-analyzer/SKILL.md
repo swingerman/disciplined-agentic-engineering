@@ -1,6 +1,6 @@
 ---
 name: crap-analyzer
-description: This skill should be used when the user asks to "analyze CRAP", "compute CRAP on this diff/branch/PR", "run /crap-analyzer", "find risky (complex + untested) methods", or otherwise wants a risk-based refactor + test plan for recently-changed code scoped to a diff. Multi-language — TypeScript, JavaScript, Python, Java, Kotlin, Go, Ruby, C#, Rust, PHP — and auto-discovers how the repo generates coverage.
+description: Use to produce a risk-based refactor + test plan for recently-changed code on a diff/branch/PR by computing CRAP (complexity × untested) on changed methods. Multi-language — TypeScript, JavaScript, Python, Java, Kotlin, Go, Ruby, C#, Rust, PHP — auto-discovers how the repo generates coverage. Triggers — "/crap-analyzer", "analyze CRAP", "compute CRAP", "find risky methods", "find complex untested methods".
 ---
 
 # CRAP Analyzer

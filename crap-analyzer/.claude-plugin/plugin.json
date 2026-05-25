@@ -1,6 +1,6 @@
 {
   "name": "crap-analyzer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Analyze recently-changed code for Change Risk Anti-Patterns. Computes CRAP per changed function across TypeScript, JavaScript, Python, Java, Kotlin, Go, Ruby, C#, Rust, and PHP. Auto-discovers how the repo generates coverage and proposes refactors + test stubs.",
   "author": {
     "name": "Miklos Szanyi",

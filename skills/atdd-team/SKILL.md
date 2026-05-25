@@ -1,16 +1,13 @@
 ---
 name: atdd-team
 description: >-
-  This skill should be used when the user asks to "build a feature with a team",
-  "use ATDD with agents", "create an ATDD team", "set up a team for ATDD",
-  "orchestrate agents for ATDD", "use team-based development", "coordinate
-  agents for feature development", "run the ATDD workflow with teammates",
-  "add ATDD to my team", "extend my team with ATDD", "join the team with
-  ATDD agents", "add spec-writer and reviewer to the team", or "add ATDD
-  roles to the existing team". It orchestrates a six-phase ATDD workflow —
-  spec writing, spec review, pipeline generation, implementation, refine,
-  verify & harden — spawning a fresh agent per phase so no agent erodes
-  across a long-running feature.
+  Use to orchestrate a team-based ATDD workflow — six phases (spec writing,
+  spec review, pipeline generation, implementation, refine, verify & harden)
+  each handled by a fresh agent so no role erodes across a long-running
+  feature. Triggers — "build a feature with a team", "use ATDD with agents",
+  "create an ATDD team", "orchestrate agents for ATDD", "coordinate agents
+  for feature development", "add ATDD roles to my team", "add spec-writer
+  and reviewer to the team".
 ---
 
 # Team-Based ATDD Workflow

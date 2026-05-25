@@ -1,6 +1,6 @@
 ---
 name: next
-description: Use at the start of a work session, or any time the question is "what should I pick up now" across the whole project. Triggers — "/engineer.next", "what's next", "what should I work on", "what should I do next", "where do I pick up". Surveys all DAE state — in-flight features, the consolidation backlog, parked ideas, handoffs flagged for human action — and recommends the next task with an execution-mode suggestion. Read-only advisory; recommends but never auto-invokes.
+description: Use at the start of a work session, or any time the question is "what should I pick up now" across the whole project. Triggers — "/engineer.next", "what's next", "what should I work on", "what should I do next", "where do I pick up".
 ---
 
 # next
