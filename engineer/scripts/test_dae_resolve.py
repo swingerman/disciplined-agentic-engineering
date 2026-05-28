@@ -433,5 +433,108 @@ class BlockScalarTests(unittest.TestCase):
         self.assertEqual(m["items"][1]["body"], "hello world")
 
 
+class InfraValidationTests(unittest.TestCase):
+    _BASE = "paths:\n  features: features\n"
+
+    def _validate(self, infra_yaml):
+        m = dr.read_manifest(self._BASE + infra_yaml)
+        return dr.validate_manifest(m)
+
+    def test_absent_infra_is_valid(self):
+        errors, _ = dr.validate_manifest(dr.read_manifest(self._BASE))
+        self.assertFalse(any("infra" in e for e in errors))
+
+    def test_valid_http_entry(self):
+        errors, _ = self._validate(
+            "infra:\n"
+            "  auth-emulator:\n"
+            "    health:\n"
+            "      type: http\n"
+            "      url: http://localhost:9099\n"
+            "    start:\n"
+            "      command: firebase emulators:start --only auth\n"
+        )
+        self.assertFalse(any("infra" in e for e in errors), errors)
+
+    def test_valid_tcp_entry_with_teardown(self):
+        errors, _ = self._validate(
+            "infra:\n"
+            "  chromedriver:\n"
+            "    health:\n"
+            "      type: tcp\n"
+            "      port: 9515\n"
+            "    start:\n"
+            "      command: chromedriver --port=9515\n"
+            "    teardown: session-end\n"
+        )
+        self.assertFalse(any("infra" in e for e in errors), errors)
+
+    def test_bad_health_type_rejected(self):
+        errors, _ = self._validate(
+            "infra:\n"
+            "  bad:\n"
+            "    health:\n"
+            "      type: smoke-signal\n"
+            "      url: http://x\n"
+            "    start:\n"
+            "      command: x\n"
+        )
+        self.assertTrue(any("infra.bad.health.type" in e for e in errors))
+
+    def test_http_requires_url(self):
+        errors, _ = self._validate(
+            "infra:\n"
+            "  noaddr:\n"
+            "    health:\n"
+            "      type: http\n"
+            "    start:\n"
+            "      command: x\n"
+        )
+        self.assertTrue(any("infra.noaddr.health.url" in e for e in errors))
+
+    def test_tcp_requires_port(self):
+        errors, _ = self._validate(
+            "infra:\n"
+            "  noport:\n"
+            "    health:\n"
+            "      type: tcp\n"
+            "    start:\n"
+            "      command: x\n"
+        )
+        self.assertTrue(any("infra.noport.health.port" in e for e in errors))
+
+    def test_start_command_required(self):
+        errors, _ = self._validate(
+            "infra:\n"
+            "  nostart:\n"
+            "    health:\n"
+            "      type: tcp\n"
+            "      port: 9515\n"
+            "    start:\n"
+            "      background: true\n"
+        )
+        self.assertTrue(any("infra.nostart.start.command" in e for e in errors))
+
+    def test_bad_teardown_rejected(self):
+        errors, _ = self._validate(
+            "infra:\n"
+            "  bad:\n"
+            "    health:\n"
+            "      type: tcp\n"
+            "      port: 1\n"
+            "    start:\n"
+            "      command: x\n"
+            "    teardown: nuke-from-orbit\n"
+        )
+        self.assertTrue(any("infra.bad.teardown" in e for e in errors))
+
+    def test_bad_default_teardown_rejected(self):
+        errors, _ = self._validate(
+            "infra:\n"
+            "  default_teardown: maybe-later\n"
+        )
+        self.assertTrue(any("infra.default_teardown" in e for e in errors))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

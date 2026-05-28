@@ -47,6 +47,9 @@ GIT_MANUAL_VALUES = {True, False}
 DUPLICATION_TOOLS = {"jscpd", "pmd-cpd", "flay", "dupl"}
 DUPLICATION_SKIP_VALUES = {True, False}
 FEATURE_FLAG_TOOLS = {"launchdarkly", "unleash", "flagsmith", "growthbook", "other"}
+INFRA_HEALTH_TYPES = {"http", "tcp", "process", "command"}
+INFRA_TEARDOWN_MODES = {"leave-running", "session-end", "always"}
+INFRA_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,49}$")
 
 _BLOCK_HEADER_RE = re.compile(r'^([\w.-]+):\s*([|>])\s*$')
 
@@ -386,8 +389,89 @@ def validate_manifest(manifest):
                           "team.default_roles must include 'verifier'")
 
     _validate_architecture(errors, manifest)
+    _validate_infra(errors, manifest)
 
     return errors, warnings
+
+
+def _validate_infra(errors, manifest):
+    """Validate the optional `infra:` section.
+
+    Schema (per entry):
+        infra:
+          <name>:                       # kebab-case, [a-z0-9][a-z0-9-]{0,49}
+            health:                     # required
+              type: http|tcp|process|command
+              # http:    url (str), timeout_s (int, default 5)
+              # tcp:     port (int), host (str, default localhost), timeout_s (int, default 2)
+              # process: pattern (str, pgrep -f regex)
+              # command: command (str), timeout_s (int, default 5)
+            start:                      # required
+              command: str
+              background: bool          # default true
+              ready_signal: str         # optional regex; otherwise health probe is used
+              ready_timeout_s: int      # default 60
+            teardown: leave-running|session-end|always   # default leave-running
+
+    Optional charter-level default:
+        infra:
+          default_teardown: leave-running|session-end|always
+    """
+    block = manifest.get("infra")
+    if block is None:
+        return
+    if not isinstance(block, dict):
+        errors.append("infra must be a mapping")
+        return
+
+    default_teardown = block.get("default_teardown")
+    if default_teardown is not None and default_teardown not in INFRA_TEARDOWN_MODES:
+        errors.append("infra.default_teardown = %r — must be one of %s"
+                      % (default_teardown, sorted(INFRA_TEARDOWN_MODES)))
+
+    for name, entry in block.items():
+        if name == "default_teardown":
+            continue
+        if not isinstance(name, str) or not INFRA_NAME_RE.match(name):
+            errors.append(
+                "infra entry name %r must be kebab-case alphanumeric, ≤50 chars" % name)
+            continue
+        if not isinstance(entry, dict):
+            errors.append("infra.%s must be a mapping" % name)
+            continue
+
+        health = entry.get("health")
+        if not isinstance(health, dict):
+            errors.append("infra.%s.health is required (mapping)" % name)
+        else:
+            htype = health.get("type")
+            if htype not in INFRA_HEALTH_TYPES:
+                errors.append("infra.%s.health.type = %r — must be one of %s"
+                              % (name, htype, sorted(INFRA_HEALTH_TYPES)))
+            else:
+                required_keys = {
+                    "http": ["url"],
+                    "tcp": ["port"],
+                    "process": ["pattern"],
+                    "command": ["command"],
+                }[htype]
+                for rk in required_keys:
+                    if not health.get(rk):
+                        errors.append(
+                            "infra.%s.health.%s is required for type %s"
+                            % (name, rk, htype))
+
+        start = entry.get("start")
+        if not isinstance(start, dict):
+            errors.append("infra.%s.start is required (mapping)" % name)
+        elif not start.get("command"):
+            errors.append("infra.%s.start.command is required" % name)
+
+        teardown = entry.get("teardown")
+        if teardown is not None and teardown not in INFRA_TEARDOWN_MODES:
+            errors.append(
+                "infra.%s.teardown = %r — must be one of %s"
+                % (name, teardown, sorted(INFRA_TEARDOWN_MODES)))
 
 
 # --------------------------------------------------------------------------
