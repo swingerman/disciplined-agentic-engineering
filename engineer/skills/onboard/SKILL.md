@@ -49,6 +49,19 @@ breadcrumb.
      - none of the above → "low-to-medium until validation surface grows; recommend setting up staging + monitoring as an upstream backlog item"
 
      The proposal is a recommendation — the human signs off (or overrides) at Step 3.
+   - **Probe for project infrastructure.** Before drafting the manifest, scan the repo for declarable infra dependencies and propose entries the human can accept/edit:
+
+     | Signal in repo | Suggested infra entry |
+     |---|---|
+     | `firebase.json` present | One entry per emulator group (`firebase emulators:start --only <group>`), health probe on the documented port (auth: 9099, firestore: 8080, functions: 5001) |
+     | `docker-compose.yml` / `compose.yml` | One entry per published service, health probe on the published port |
+     | `package.json` scripts matching `dev*`, `start:dev`, `emulator*`, `serve*` | Entry using `npm run <script>`, with health probe on the documented port |
+     | `Makefile` targets matching `dev`, `up`, `start-*`, `emulator*` | Entry using `make <target>` |
+     | chromedriver-related deps in `package.json` / `requirements.txt` / `Gemfile` | Entry for chromedriver with TCP probe on 9515 |
+
+     Present each draft entry to the human for confirmation, then add the approved entries to the manifest's `infra:` section per the schema (see `engineer/references/handoff-dispatch.md` + the schema in `engineer/scripts/dae_resolve.py:_validate_infra`).
+
+     Discovery is best-effort. If a project's infra doesn't fit the patterns above, ask the human to declare it manually — the declaration discipline is what makes downstream skills reliable.
 3. **Draft the charter, get sign-off** — draft `CHARTER.md`'s 7 mandatory sections (methodology, architecture, conventions, scope, agent team, quality stance, autonomy stance). For an existing codebase, pre-fill what's inferable from the repo. Then present it and get the human's explicit confirmation — section by section for the judgment-heavy ones (scope, quality stance, autonomy stance + path overrides). Do not proceed to Step 4 until the charter is signed off.
 4. **Create the manifest** — fill `.engineer/manifest.yml` (paths, roadmap/tracker, team, repos, quality thresholds, mutation, verification, autonomy, agentic_summary).
 5. **Tracking decision** — this is a human decision, not an agent default. Surface what the project appears to use (e.g. a repo full of Notion links → Notion) and ask the human to choose: `notion | github-projects | linear | jira | local`. `notion`: requires a connected Notion MCP — use it to create the tracker database (the `TrackedFeature` schema) or validate an existing one; DAE stores no API key (the MCP owns auth). `local`: feature folders are the tracker. Others: reserved — emit "not yet implemented". Never silently default to `local` to keep things moving. See `references/tracker.md`.
@@ -82,3 +95,4 @@ If onboarding stopped because the human wasn't available to sign off the charter
 - [Discuss & Upstream Funnel](https://www.notion.so/35a5ecdee0e281eaa35fced0c4e23384) — methodology_root, onboarding intake
 - `references/tracker.md` — the tracker drivers, setup, the Notion mapping
 - [Tracker Integration](https://www.notion.so/35a5ecdee0e28168b1aee324c267fd13) — the full contract
+- `engineer/scripts/dae_infra.py` — what the manifest infra entries feed

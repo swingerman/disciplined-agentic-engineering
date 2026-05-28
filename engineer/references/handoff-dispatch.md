@@ -24,17 +24,17 @@ After a skill writes its handoff, the next checkpoint often needs a **fresh agen
 
 Effective autonomy = `feature.md` `autonomy_level`, capped by `manifest.autonomy.path_overrides` for the feature's path. Read this once during the skill's resolve step; it's already loaded.
 
-## Special case — the next agent needs resources you can't access
+## Special case — the next agent needs infrastructure (emulators, drivers, services)
 
-If the next-checkpoint work needs something the implementer can't provide (live emulators on the user's machine, prod credentials, hardware), **do not dispatch**. Instead, write the exact dispatch command into the handoff:
+If the next checkpoint's work needs running infrastructure, **do not** write a "start this manually" command and stop. Instead:
 
-```
-to dispatch verify:
-  start firebase emulators in a terminal: `firebase emulators:start`
-  then invoke: /engineer.verify --feature <slug>
-```
+1. Read `manifest.yml`'s `infra:` section.
+2. Call `${CLAUDE_PLUGIN_ROOT}/scripts/dae_infra.py ensure <name> [<name> …]` for each dependency.
+3. If `ensure` returns success → proceed with the dispatch.
+4. If `ensure` returns a `start-failed` failure → surface the structured diagnosis to the user (`diagnosis`, `detail`, `suggested_fix`) and stop. This is one of the legitimate stop reasons.
+5. If the required infra is not declared in `manifest.yml` → stop with: "declare `<name>` in manifest.yml `infra:` section per the DAE infra schema, or pre-start the service." Do NOT fall back to grep-the-README reasoning; the declaration discipline is the contract.
 
-Stop after writing the command. Do **not** ask "should I dispatch?" — you've already declared why you can't.
+The old escape "I can't access live emulators / prod creds / hardware" is now narrowly: the script tried, the script failed, here's exactly what failed and how to fix it.
 
 ## Subagent brief template
 
@@ -65,3 +65,7 @@ The brief is **self-contained** — the subagent doesn't see the parent skill's 
 ## What this rule replaces
 
 Previously, every implementing skill ended with a passive handoff and the human had to manually invoke the next checkpoint. That bounced ten mechanical decisions per feature back to the human. The rule above keeps the human in the loop for the decisions that matter (ambiguity, charter-required acceptance, low autonomy) and removes them from the ones that don't.
+
+## References
+
+- `engineer/scripts/dae_infra.py` — probe + auto-start + teardown of declared infra

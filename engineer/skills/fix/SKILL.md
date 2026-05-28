@@ -19,6 +19,8 @@ Unlike ad-hoc fixes, the `fix` workflow enforces a regression spec that must be 
 
 ## Workflow
 
+**Infra contract.** Any step that runs tests, mutations, or the regression spec MUST first ensure required infra is up via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_infra.py ensure <names>` (reading the manifest's `infra:` section). On a `start-failed` failure → stop and surface the structured diagnosis. On undeclared required infra → stop with "declare in manifest" message. This applies to Steps 3, 4, 7.
+
 ### Step 1 — Capture
 
 Accept free-form input; no feature slug required. Collect: title, severity (`low | medium | high | critical`), source (`kind: sentry|github|slack|user|internal`, `ref: <url-or-id>`), whether it blocks users (`blocks_user`), workaround (`"none"` if none), and a concise repro/expected/actual.
@@ -102,3 +104,4 @@ Then dispatch per `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md`: adviso
 - `references/regression-spec-template.md` — Given/When/Then template used in Step 3
 - `references/gap-analysis-categories.md` — closed vocabulary + blocker rule
 - Sister skills: `prime-context` (Step 2 per candidate), `arch-check` + `crap-analyzer` (Step 6), `atdd-mutate` (Step 7), `progress-log` (Step 9), `next` (surfaces open fixes)
+- `engineer/references/handoff-dispatch.md` — infra-ensure-before-stop rule

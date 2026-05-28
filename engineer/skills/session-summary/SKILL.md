@@ -34,7 +34,9 @@ At the end of a work session on a feature. A Stop hook may auto-invoke it; that 
 
 Create the file with a `# Session log — <title>` heading if absent.
 
-4. **Handoff** — emit a summary.
+4. **Tear down session-end infra.** Run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_infra.py teardown` (no args = all entries with effective `teardown: session-end` or `always`). Default behavior leaves entries with `teardown: leave-running` (the per-entry default and the project-wide default we ship with) untouched — emulators are expensive to start, and the user typically wants them up across sessions while working on a feature. The teardown's JSON output goes into the session log as a one-line summary.
+
+5. **Handoff** — emit a summary.
 
 ## Handoff
 
@@ -47,3 +49,4 @@ Three records, three readers: `handoffs/` = machine, per-invocation; `progress.m
 ## References
 
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — `session-log.md` in the storage layout, the session-log ↔ handoffs distinction (Section 5)
+- `engineer/scripts/dae_infra.py` — invoked here at session end

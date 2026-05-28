@@ -42,7 +42,7 @@ blocks the skill. Then create one TodoWrite todo per workflow step below. See
 4. **Charter filter** — check every proposal against `CHARTER.md` (architecture, conventions, methodology, the ACs+specs contract). Charter-violating proposals are **rejected internally — never shown**. This filter is the DAE-specific layer the stock skill lacks.
 5. **Classify breaking changes** — consumer-facing (something outside the blast radius depends on the old shape) → graceful path: deprecation-marked forwarding shim + migration note, new shape alongside old. Internal-only → hard change is fine.
 6. **Present; human picks** — show charter-compliant proposals (change, why, blast radius, churn). The human selects which are worth the churn.
-7. **Apply** — apply selected; install graceful paths where needed; re-run both test streams. Any failure → revert that proposal and report.
+7. **Apply** — apply selected; install graceful paths where needed; re-run both test streams. Before running the test streams, ensure required infra is up: read `manifest.yml`'s `infra:` section, then call `${CLAUDE_PLUGIN_ROOT}/scripts/dae_infra.py ensure <names>` for each declared dependency the tests need. On a `start-failed` structured failure → stop and surface the diagnosis. On a missing manifest declaration for required infra → stop with the "declare in manifest" message. Any failure → revert that proposal and report.
 8. **Handoff** — emit a summary.
 
 If a charter rule itself blocks a genuinely better design, surface it in the handoff (→ `feature-edit` / charter amendment). refine does not amend the charter.
@@ -60,3 +60,4 @@ The handoff MUST include the `exit_criteria` block asserting each of Checkpoint 
 - `superpowers:dispatching-parallel-agents` — the Step 2 dispatch pattern
 - `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md` — when to dispatch vs stop
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — charter format, verification independence
+- `engineer/references/handoff-dispatch.md` — infra-ensure-before-stop rule
