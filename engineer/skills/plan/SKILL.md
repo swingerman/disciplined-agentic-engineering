@@ -48,7 +48,10 @@ Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: 4`;
 
 The handoff MUST include the `exit_criteria` block asserting each of Checkpoint 4's exit criteria (Foundation Design Section 8) with `verified_by`, `met`, and `evidence`. For `verified_by: tool` criteria, the evidence MUST be the tool's actual output. The checkpoint is marked done only when every criterion is met.
 
+**Before stopping**, apply the dispatch rule — see `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md`. CP5 implement is a different role than planner; auto-dispatch the implementer subagent at autonomy `medium`/`high`; confirm-then-dispatch at `low`. Skip dispatch only if the plan emitted `human_action_needed: yes` (decision pending) — in that case stop until the human resolves.
+
 ## References
 
+- `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md` — when to dispatch vs stop
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — the structured Charter Check (Section 3)
 - The DAE methodology page — execution model, autonomy levels, collaboration schedule

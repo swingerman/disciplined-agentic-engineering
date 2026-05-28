@@ -60,8 +60,18 @@ Emit a summary per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`.
 ≥1 scenario, spec-check passes — each with `verified_by` and evidence.
 `recommended_next`: "/engineer.plan".
 
+### Step 3 — Dispatch the next checkpoint
+
+`spec.md` is the human's contract and gets human approval in Step 1. Once
+approved, **auto-dispatch /engineer.plan** at autonomy `medium`/`high`;
+confirm-then-dispatch at `low`. See
+`${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md`. Don't bounce the
+mechanical "ready to plan?" question back to the human after they already
+approved the spec.
+
 ## References
 
+- `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md` — when to dispatch vs stop
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) —
   the Checkpoint Exit Contract (Section 8)
 - `atdd:atdd` — the acceptance workflow this skill bridges to

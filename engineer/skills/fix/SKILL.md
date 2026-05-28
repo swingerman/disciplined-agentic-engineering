@@ -88,6 +88,8 @@ Run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_fix.py` `close_ready(rec)`. Hard precondi
 
 Emit a handoff that reference-links each `feature_refs[*]/progress.md`. Set `status: closed`.
 
+Then dispatch per `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md`: advisory followups already landed in `.engineer/consolidation.md` (no dispatch — `next` surfaces them); blocker followups are already applied. Auto-invoke `/engineer.progress-log` to propagate the closure entry to each affected feature's `progress.md` at autonomy `medium`/`high`; confirm-then-dispatch at `low`.
+
 ## When NOT to use this skill
 
 - Building a new feature → `/engineer.discuss` or `/engineer.feature-init`

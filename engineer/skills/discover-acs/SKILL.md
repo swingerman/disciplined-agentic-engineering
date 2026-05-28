@@ -62,7 +62,10 @@ Emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: 2`;
 
 The handoff MUST include the `exit_criteria` block asserting each of Checkpoint 2's exit criteria (Foundation Design Section 8) with `verified_by`, `met`, and `evidence`. For `verified_by: tool` criteria, the evidence MUST be the tool's actual output. The checkpoint is marked done only when every criterion is met.
 
+ACs ship with `human_action_needed: yes` (the human owns the AC contract) — so this checkpoint is one of the explicit stop points per `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md`. Present the ACs for review; do **not** auto-dispatch CP3 atdd until the human has approved them.
+
 ## References
 
+- `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md` — when to dispatch vs stop
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — feature.md schema
 - The DAE methodology page — why ACs and specs are separate
