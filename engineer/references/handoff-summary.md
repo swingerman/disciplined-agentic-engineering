@@ -70,7 +70,8 @@ What state was written. Optional section.
 
 - One summary per skill invocation. Sub-tasks don't emit unless themselves dispatched as a skill.
 - On crash/interruption, emit a partial summary with `status: interrupted` capturing what was done.
-- `agent_id` enforces verification independence (Principle 7): a verification handoff's `agent_id` must differ from the implementer's for the same feature.
+- `agent_id` enforces verification independence (Principle 7): a verification handoff's `agent_id` must differ from the implementer's for the same feature. Enforced by `dae_handoff.py gate()` — any CP6/CP7/CP8 handoff whose `agent_id` equals the feature's CP5 handoff `agent_id` fails the gate with a "Principle 7" error. If the verify subagent crashes, the implementer MUST NOT self-verify — re-dispatch a fresh subagent or pause for the human.
+- `exit_criteria[*].met` accepts `true`, `false`, or `partial`. `partial` counts as **not met** for the gate but is preserved distinctly in reports so the human can see the criterion was *attempted* but didn't fully satisfy. Never auto-promote `partial` to `true` to move forward.
 - Writing the summary triggers `progress-log`, which propagates it to `progress.md` and the tracker.
 - **Handoff-as-gate.** A checkpoint is not complete until its handoff exists, has `status: complete`, and asserts every `exit_criteria` entry `met: true`. A skill that advances checkpoint N+1 MUST verify checkpoint N is complete before starting — run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py <feature> --through N`. On a non-zero exit, stop and surface the gap to the human; do not proceed and do not auto-fix.
 

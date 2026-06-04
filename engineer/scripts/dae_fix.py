@@ -61,6 +61,7 @@ def parse_fix(text):
         "harden_results": None,
         "gap_analysis": [],
         "followups": [],
+        "handoff_path": None,
     }
 
     fm = dae_resolve.extract_frontmatter(text)
@@ -177,6 +178,11 @@ def parse_fix(text):
     if isinstance(followups, list):
         rec["followups"] = [item for item in followups if isinstance(item, dict)]
 
+    # handoff_path: string pointing at the close-step handoff for this fix
+    handoff_path = data.get("handoff_path")
+    if isinstance(handoff_path, str):
+        rec["handoff_path"] = handoff_path
+
     return rec
 
 
@@ -231,6 +237,24 @@ def validate_fix(rec):
                 "gap_analysis[%d].category %r must be one of %s"
                 % (i, category, sorted(GAP_ANALYSIS_CATEGORIES))
             )
+
+    # When status == 'closed', enforce close-step preconditions at schema time.
+    # The mmc audit showed 5 fixes with status: closed but only 2 handoffs —
+    # the close step was silently skipped under deploy pressure. Make it hard.
+    if rec.get("status") == "closed":
+        if not rec.get("handoff_path"):
+            errors.append("status: closed requires handoff_path (path to the close-step handoff)")
+        if not is_pin_confirmed(rec):
+            errors.append("status: closed requires pin_confirmation with red_run.result == 'red' for every feature_ref")
+        if not is_hardened(rec):
+            errors.append(
+                "status: closed requires harden_results with bug_line_mutation_confirmed: true, "
+                "mutation_score recorded, and arch_check recorded"
+            )
+        if not (rec.get("gap_analysis") or []):
+            errors.append("status: closed requires non-empty gap_analysis (the 'why didn't we catch it?' loop)")
+        if has_unresolved_blockers(rec):
+            errors.append("status: closed requires all blocker followups resolved (architecture_violation or blocks_user+workaround:none)")
 
     return errors
 

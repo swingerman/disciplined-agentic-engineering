@@ -230,5 +230,88 @@ body
         self.assertTrue(rec["exit_criteria"][0]["met"])
 
 
+def _handoff(skill, agent_id, checkpoint, met=True):
+    """Build a minimal handoff text with given skill/agent_id/checkpoint."""
+    met_str = "true" if met is True else "false" if met is False else "partial"
+    return ("---\n"
+            "skill: %s\n"
+            "agent_id: %s\n"
+            "checkpoint: %s\n"
+            "exit_criteria:\n"
+            "  - criterion: \"work done\"\n"
+            "    met: %s\n"
+            "    evidence: \"yes\"\n"
+            "status: complete\n"
+            "---\n") % (skill, agent_id, checkpoint, met_str)
+
+
+class MetPartialTests(unittest.TestCase):
+    def test_partial_parsed_distinct_from_true(self):
+        text = _handoff("verify", "subagent-7", 7, met="partial")
+        rec = dh.parse_handoff(text)
+        self.assertEqual(rec["exit_criteria"][0]["met"], "partial")
+
+    def test_partial_blocks_completeness(self):
+        text = _handoff("verify", "subagent-7", 7, met="partial")
+        self.assertFalse(dh._rec_complete(dh.parse_handoff(text)))
+
+
+class IndependenceViolationTests(unittest.TestCase):
+    def test_no_violation_when_agents_differ(self):
+        d = _make_feature([
+            _handoff("atdd", "subagent-A", 5),
+            _handoff("verify", "subagent-B", 7),
+        ], PROGRESS)
+        self.addCleanup(shutil.rmtree, d)
+        self.assertEqual(dh.independence_violations(d), [])
+
+    def test_violation_when_verifier_is_implementer(self):
+        d = _make_feature([
+            _handoff("atdd", "subagent-A", 5),
+            _handoff("verify", "subagent-A", 7),
+        ], PROGRESS)
+        self.addCleanup(shutil.rmtree, d)
+        v = dh.independence_violations(d)
+        self.assertEqual(len(v), 1)
+        self.assertEqual(v[0][1], "subagent-A")
+        self.assertEqual(v[0][2], 7)
+
+    def test_violation_blocks_gate(self):
+        # Use an empty progress.md so the only failure mode is independence.
+        d = _make_feature([
+            _handoff("atdd", "main", 5),
+            _handoff("verify", "main", 7),
+        ], "# stub\n")
+        self.addCleanup(shutil.rmtree, d)
+        ok, msg = dh.gate(d, through=7)
+        self.assertFalse(ok)
+        self.assertIn("Principle 7", msg)
+
+    def test_no_cp5_no_violation(self):
+        # If there's no implement handoff at CP5, independence is vacuous.
+        d = _make_feature([
+            _handoff("verify", "subagent-X", 7),
+        ], PROGRESS)
+        self.addCleanup(shutil.rmtree, d)
+        self.assertEqual(dh.independence_violations(d), [])
+
+    def test_missing_agent_id_skips_comparison(self):
+        # If CP5 agent_id is missing, no comparison can be made.
+        no_agent_cp5 = ("---\n"
+                        "skill: atdd\n"
+                        "checkpoint: 5\n"
+                        "exit_criteria:\n"
+                        "  - criterion: \"x\"\n"
+                        "    met: true\n"
+                        "status: complete\n"
+                        "---\n")
+        d = _make_feature([
+            no_agent_cp5,
+            _handoff("verify", "main", 7),
+        ], PROGRESS)
+        self.addCleanup(shutil.rmtree, d)
+        self.assertEqual(dh.independence_violations(d), [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -58,6 +58,10 @@ followups:
   - category: incomplete_spec
     action: "Add expired-token redirect scenarios to features/031-auth-session/spec.md"
     status: applied                           # open | applied
+
+handoff_path: .engineer/handoffs/2026-05-15-login-redirect-loop-close.md
+                                              # REQUIRED when status: closed
+                                              # path to the close-step handoff for this fix
 ---
 ```
 

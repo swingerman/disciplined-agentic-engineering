@@ -81,7 +81,24 @@ breadcrumb.
 
 ## Gap-check mode
 
-Manifest exists → don't re-onboard. Validate: `CHARTER.md` has all 7 sections; `manifest.yml` schema-valid; `features/` numbering monotonic; tracker config resolves; charter roles == `manifest.team.default_roles`. Report gaps with suggested fixes (mirrors `consistency-check --project`). Read-only.
+Manifest exists → don't re-onboard. Validate: `CHARTER.md` has all 7 sections; `manifest.yml` schema-valid; `features/` numbering monotonic; tracker config resolves; charter roles == `manifest.team.default_roles`. Report gaps with suggested fixes (mirrors `consistency-check --project`).
+
+**Strictly read-only. Forbidden:**
+- `git checkout`, `git pull`, `git fetch`, `git merge`, `git rebase`, `git branch -d/-D` — no git state mutations of any kind.
+- `git stash` — even apparently-safe stashing changes working-tree state.
+- Writing, editing, or deleting any file outside `/tmp` (no charter edits, no `.engineer/` writes, no feature-folder touches).
+
+If gap-check would benefit from a sync (e.g. the user is on a feature branch with merged remote), surface the suggestion in the report and stop. The caller invokes `/engineer.post-merge` or the manual git commands themselves. **Do not infer "the user wants a sync" from "the user typed /engineer.onboard".**
+
+## Full-onboard precondition
+
+Full-onboard mutates the repo: writes `CHARTER.md`, `.engineer/`, `features/`. It must start from a clean state:
+
+- HEAD on `main`/`master` (or the repo's default branch — read from `git symbolic-ref refs/remotes/origin/HEAD`).
+- Clean working tree (`git status --porcelain` empty).
+- Either: no current branch is a feature branch with unpushed work, **or** the user explicitly confirms "onboard on this branch".
+
+If those conditions don't hold, stop and surface the situation — never auto-checkout, never auto-stash. Suggested wording: "Onboarding writes new files into the repo root. You're on `<branch>` with `<N>` unpushed commits — confirm you want to onboard here, or switch to main yourself first."
 
 ## Handoff
 

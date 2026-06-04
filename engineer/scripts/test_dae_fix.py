@@ -219,6 +219,72 @@ class TestValidateFix(unittest.TestCase):
         errors = dae_fix.validate_fix(rec)
         self.assertTrue(any("title" in e for e in errors))
 
+    def _closed_rec(self):
+        """Build a well-formed rec at status: closed (overridable per-test)."""
+        return {
+            "slug": "2026-05-15-test",
+            "title": "test",
+            "status": "closed",
+            "handoff_path": ".engineer/handoffs/2026-05-15-test-close.md",
+            "feature_refs": ["015-thing"],
+            "pin_confirmation": {
+                "feature_refs": [
+                    {"feature": "015-thing", "red_run": {"result": "red"}}
+                ]
+            },
+            "harden_results": {
+                "bug_line_mutation_confirmed": True,
+                "mutation_score": "80%",
+                "arch_check": "ok",
+            },
+            "gap_analysis": [{"category": "none"}],
+            "followups": [],
+        }
+
+    def test_validate_fix_closed_happy_path(self):
+        rec = self._closed_rec()
+        errors = dae_fix.validate_fix(rec)
+        self.assertEqual(errors, [])
+
+    def test_validate_fix_closed_rejects_missing_handoff_path(self):
+        rec = self._closed_rec()
+        rec["handoff_path"] = None
+        errors = dae_fix.validate_fix(rec)
+        self.assertTrue(any("handoff_path" in e for e in errors))
+
+    def test_validate_fix_closed_rejects_missing_arch_check(self):
+        rec = self._closed_rec()
+        del rec["harden_results"]["arch_check"]
+        errors = dae_fix.validate_fix(rec)
+        self.assertTrue(any("arch_check" in e for e in errors))
+
+    def test_validate_fix_closed_rejects_missing_bug_line_mutation(self):
+        rec = self._closed_rec()
+        rec["harden_results"]["bug_line_mutation_confirmed"] = False
+        errors = dae_fix.validate_fix(rec)
+        self.assertTrue(any("bug_line_mutation_confirmed" in e for e in errors))
+
+    def test_validate_fix_closed_rejects_empty_gap_analysis(self):
+        rec = self._closed_rec()
+        rec["gap_analysis"] = []
+        errors = dae_fix.validate_fix(rec)
+        self.assertTrue(any("gap_analysis" in e for e in errors))
+
+    def test_validate_fix_closed_rejects_pin_not_red(self):
+        rec = self._closed_rec()
+        rec["pin_confirmation"]["feature_refs"][0]["red_run"]["result"] = "green"
+        errors = dae_fix.validate_fix(rec)
+        self.assertTrue(any("pin_confirmation" in e for e in errors))
+
+    def test_validate_fix_non_closed_status_skips_close_gate(self):
+        """status: hardened doesn't require handoff_path yet."""
+        rec = self._closed_rec()
+        rec["status"] = "hardened"
+        rec["handoff_path"] = None
+        errors = dae_fix.validate_fix(rec)
+        # No handoff_path error because status != closed
+        self.assertFalse(any("handoff_path" in e for e in errors))
+
 
 class TestIsPinConfirmed(unittest.TestCase):
     """Tests for is_pin_confirmed function"""
