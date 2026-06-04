@@ -30,6 +30,19 @@ Resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_r
 - **Session-log next-tasks** — the latest `session-log.md` entry per active feature ("Next tasks")
 - **CHARTER.md + manifest** — autonomy levels and path overrides, for execution-mode advice
 - **Open fixes** — `.engineer/fixes/*.md` via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_fix.py list_open_fixes` (status != closed)
+- **Stale merged branch** — if the current branch is not `main`/`master`, run `git fetch origin --quiet` then check `git merge-base --is-ancestor HEAD origin/HEAD` (fallback `origin/main`). If true, the branch is merged and lingering — surface it as a STALE BRANCH item.
+
+### Step 1.5 — Offer branch cleanup (if stale)
+
+If a stale merged branch was detected, surface it before the buckets with the cleanup commands:
+
+```
+STALE BRANCH (1)
+  • feature/<slug> is merged into origin/main — run:
+      git checkout main && git pull --ff-only && git branch -d feature/<slug>
+```
+
+At autonomy `high`, run the three commands (only after the survey is done, never destructively — `-d` refuses unmerged work) and report the result. At `medium`, run them but surface a one-line "cleaned up X" note. At `low`, list the commands and stop until the user confirms. Then continue to Step 2.
 
 ### Step 2 — Triage into five buckets
 

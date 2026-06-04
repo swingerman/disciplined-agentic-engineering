@@ -92,6 +92,15 @@ Emit a handoff that reference-links each `feature_refs[*]/progress.md`. Set `sta
 
 Then dispatch per `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md`: advisory followups already landed in `.engineer/consolidation.md` (no dispatch — `next` surfaces them); blocker followups are already applied. Auto-invoke `/engineer.progress-log` to propagate the closure entry to each affected feature's `progress.md` at autonomy `medium`/`high`; confirm-then-dispatch at `low`.
 
+**Post-merge cleanup (deferred).** Print the cleanup commands the user (or next agent) must run *after* the fix PR merges, and record the branch name in the closure entry so `next`/`session-summary` can detect a stale branch later:
+
+```
+After the PR merges:
+  git checkout main && git pull --ff-only && git branch -d <branch>
+```
+
+This is informational — the close step happens before merge, so cleanup can't run here. `next` and `session-summary` both probe for merged branches and will offer the cleanup automatically.
+
 ## When NOT to use this skill
 
 - Building a new feature → `/engineer.discuss` or `/engineer.feature-init`
