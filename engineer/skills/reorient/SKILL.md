@@ -72,9 +72,30 @@ Must not skip: <non-negotiables>.
 Constraints: <charter / autonomy limits>.
 ```
 
-### Step 4 — Stop
+### Step 4 — Stuck-loop detection
 
-`reorient` orients; it does not act. The human resumes the work. No handoff.
+Before stopping, scan the feature's recent handoffs for a stuck loop. A loop is "stuck" when **three or more consecutive handoffs** from the same skill share:
+- the same `status` (typically `interrupted` or `complete`-with-unmet-criteria), AND
+- the same recommended-next, AND
+- substantially the same `findings_summary` / failure signature (e.g. same error class, same blocker name, same infra failure type).
+
+A stuck loop is the agent re-attempting the same operation expecting different results. nexthq saw 60+ identical ticks over 12 hours on a Functions emulator blocker — the autonomous loop never escalated to the human.
+
+Threshold is tunable via `manifest.autonomy.stuck_loop_threshold` (default `3`).
+
+When detected: STOP. Do not silently re-run. Emit (just this once — break the no-handoff rule) a `session-summary`-style escalation handoff that:
+- Names the repeated failure signature.
+- Lists the N affected handoffs by filename.
+- Sets `human_action_needed: decision` and `human_action_kind: unblock-stuck-loop`.
+- `recommended_next`: "human review required — N consecutive identical failures from <skill>".
+
+The escalation handoff lives in `.engineer/handoffs/` (it's project-scope, not feature-scope progress). The human picks the unblock — a different approach, a charter amendment, an environment fix, or a deferred re-try.
+
+### Step 5 — Stop
+
+If Step 4 found no loop: `reorient` orients; it does not act. The human resumes the work. No handoff.
+
+If Step 4 escalated: the escalation handoff is the output. The loop is broken — wait for the human.
 
 ## Optional: auto-invoke on compaction
 

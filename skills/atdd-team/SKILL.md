@@ -185,6 +185,13 @@ When all phases pass:
 1. Run both test streams one final time to confirm green
 2. Ask the user whether to commit (do not auto-commit)
 3. Ask whether to iterate with the next feature (return to Phase 1) or stop
+4. **Team teardown.** When the feature reaches CP8 (Harden complete) or its PR is merged, propose deleting the `atdd-<slug>` team. Teams are per-feature scaffolding — leaving them alive after the feature ships clutters the team list and wastes context on every `next` survey (nexthq saw a team idle for 5 days post-feature). At autonomy `high`, run `TeamDelete` and report. At `medium`, run + report. At `low`, surface the proposal and wait. If the feature is still in flight (e.g. follow-up bugs likely), the user can defer.
+
+## Lifecycle
+
+- **Create**: at the start of Phase 1 if a team for this feature doesn't already exist.
+- **Reuse**: a session-resume on the same feature finds the existing team and reuses it.
+- **Teardown**: at "After Completion" Step 4 (CP8 done / PR merged). `engineer:progress-log` may also trigger teardown when it observes a feature advance to `status: done`.
 
 ## Tips for Team Leads
 

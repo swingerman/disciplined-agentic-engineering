@@ -42,6 +42,14 @@ Fix closures use the same propagation contract as feature handoffs: visible at
 the feature level so contributors browsing that feature see the bug history
 without having to discover `.engineer/fixes/`.
 
+## ATDD team teardown
+
+When `progress-log` observes a feature advancing to `status: done` (CP8 complete
+or PR merged), check whether an `atdd-<slug>` team exists. If it does, propose
+teardown per the `atdd:atdd-team` lifecycle — auto-dispatch at autonomy
+`high`/`medium`, surface and wait at `low`. nexthq saw a team idle for 5 days
+after its feature shipped because nothing claimed responsibility for cleanup.
+
 ## References
 
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — `progress.md` schema, agentic summary contract + this exemption (Section 5)

@@ -1,6 +1,6 @@
 ---
 name: fix
-description: Use to drive a bug fix from first report through close, with a "why didn't we catch it?" loop at the end. Triggers — "/engineer.fix", "a bug came in", "this is broken", "a user reported X", "there's a defect", "we have a regression", "this needs a fix".
+description: Use to drive a bug fix from first report through close, with a "why didn't we catch it?" loop at the end. Triggers — "/engineer.fix", "a bug came in", "this is broken", "a user reported X", "there's a defect", "we have a regression", "this needs a fix", "another report", "more issues", "still failing", "validation failed again", "another bug", "next defect", "more fixes".
 ---
 
 # fix
@@ -20,6 +20,18 @@ Unlike ad-hoc fixes, the `fix` workflow enforces a regression spec that must be 
 ## Workflow
 
 **Infra contract.** Any step that runs tests, mutations, or the regression spec MUST first ensure required infra is up via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_infra.py ensure <names>` (reading the manifest's `infra:` section). On a `start-failed` failure → stop and surface the structured diagnosis. On undeclared required infra → stop with "declare in manifest" message. This applies to Steps 3, 4, 7.
+
+### Step 0 — Re-entry routing
+
+Before Step 1, probe for in-flight fixes via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_fix.py list_open_fixes` (any status != `closed`). Three cases:
+
+| State | Action |
+|---|---|
+| **No open fixes** | Proceed to Step 1 (Capture) as a new defect. |
+| **Exactly one open fix, agent has fresh context** (e.g. just typed "still failing", "validation failed again") | Continue that fix from its current `status:` — jump to the matching step. Don't write a new artifact. |
+| **Multiple open fixes**, or **one open fix + trigger sounds like a new defect** (e.g. "another bug", "a new report came in") | Surface the open fixes one-line each and ask "continue X, or capture a new defect?" — single AskUserQuestion, then proceed. |
+
+mmc ran 5 sequential fixes from one `/engineer.fix` invocation because the skill assumed one-shot. Re-entry routing makes "many fixes in a row" cheap: no re-anchor, no template re-read, just pick up where the last close left off. A fresh defect from re-entry still flows through Steps 1–9 — it just doesn't lose the agent's context to a cold start.
 
 ### Step 1 — Capture
 

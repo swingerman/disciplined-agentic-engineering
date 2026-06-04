@@ -36,7 +36,7 @@ Create the file with a `# Session log — <title>` heading if absent.
 
 4. **Tear down session-end infra.** Run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_infra.py teardown` (no args = all entries with effective `teardown: session-end` or `always`). Default behavior leaves entries with `teardown: leave-running` (the per-entry default and the project-wide default we ship with) untouched — emulators are expensive to start, and the user typically wants them up across sessions while working on a feature. The teardown's JSON output goes into the session log as a one-line summary.
 
-5. **Branch cleanup if merged.** If the current branch is not `main`/`master`, run `git fetch origin --quiet` then `git merge-base --is-ancestor HEAD origin/HEAD` (fallback `origin/main`). If the branch is merged, the feature/fix is shipped and the branch is dead weight: run `git checkout main && git pull --ff-only && git branch -d <branch>` and record the cleanup in the session log. At autonomy `low`, surface the commands and stop until the user confirms. If the branch is **not** merged, do nothing — the work isn't complete yet.
+5. **Branch cleanup if merged.** If the current branch is not `main`/`master`, run `git fetch origin --quiet` then `git merge-base --is-ancestor HEAD origin/HEAD` (fallback `origin/main`). If the branch is merged, defer to `/engineer.post-merge` (the dedicated cleanup skill) — at autonomy `high`/`medium` auto-invoke it; at `low` surface the finding. If the branch is **not** merged, do nothing — the work isn't complete yet. Record the post-merge outcome in the session log.
 
 6. **Handoff** — emit a summary.
 

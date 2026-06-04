@@ -34,15 +34,7 @@ Resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_r
 
 ### Step 1.5 — Offer branch cleanup (if stale)
 
-If a stale merged branch was detected, surface it before the buckets with the cleanup commands:
-
-```
-STALE BRANCH (1)
-  • feature/<slug> is merged into origin/main — run:
-      git checkout main && git pull --ff-only && git branch -d feature/<slug>
-```
-
-At autonomy `high`, run the three commands (only after the survey is done, never destructively — `-d` refuses unmerged work) and report the result. At `medium`, run them but surface a one-line "cleaned up X" note. At `low`, list the commands and stop until the user confirms. Then continue to Step 2.
+If a stale merged branch was detected, defer to the `post-merge` skill — it owns the full cleanup flow (checkout, pull, branch -d, prune, tracker update). At autonomy `high`/`medium`, auto-invoke `/engineer.post-merge` before continuing to Step 2. At `low`, surface the finding and stop until the user invokes it themselves. Do not inline the cleanup commands here — keep `next` advisory and let the dedicated skill do the work, so the post-merge handoff lands in the audit trail.
 
 ### Step 2 — Triage into five buckets
 

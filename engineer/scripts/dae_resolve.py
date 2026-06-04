@@ -374,6 +374,10 @@ def validate_manifest(manifest):
             if isinstance(ov, dict) and ov.get("max_level") not in AUTONOMY_LEVELS:
                 errors.append("autonomy.path_overrides[].max_level = %r — must be one of %s"
                               % (ov.get("max_level"), sorted(AUTONOMY_LEVELS)))
+        stuck = autonomy.get("stuck_loop_threshold")
+        if stuck is not None and not (isinstance(stuck, int) and stuck >= 2):
+            errors.append("autonomy.stuck_loop_threshold = %r -- must be int >= 2"
+                          % stuck)
 
     # Quality thresholds in range
     for key in ("crap_max", "coverage_min", "mutation_score_min"):
