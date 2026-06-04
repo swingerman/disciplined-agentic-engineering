@@ -62,6 +62,17 @@ breadcrumb.
      Present each draft entry to the human for confirmation, then add the approved entries to the manifest's `infra:` section per the schema (see `engineer/references/handoff-dispatch.md` + the schema in `engineer/scripts/dae_resolve.py:_validate_infra`).
 
      Discovery is best-effort. If a project's infra doesn't fit the patterns above, ask the human to declare it manually — the declaration discipline is what makes downstream skills reliable.
+
+   - **Capture infra quirks.** After the infra entries are confirmed, batch one `AskUserQuestion` covering project-level runtime quirks that downstream skills need to know but can't discover from files:
+
+     | Quirk | Why it matters |
+     |---|---|
+     | `runtime_pins` (e.g. `java: 21`, `node: 20.x`) | Wrong version → silent runtime failures (nexthq: Java 21 was rediscovered every session). |
+     | `port_map_file` (path or "none") | If the user keeps a port-allocation file (e.g. `~/.<project>-ports.md`), record its path so fix/atdd consult it before booting (nexthq). |
+     | `framework_constraints` (free-text list) | Things like "Flutter web has no hot-reload", "Apache opcache requires cold restart after schema changes" — surface to the agent before it loops on confusing symptoms (mmc Apache, nexthq Flutter). |
+     | `recovery_commands` (map of `symptom: command`) | Known fixes for known hangs (e.g. `coresimulator_wedged: killall -9 com.apple.CoreSimulator.CoreSimulatorService`). |
+
+     Write the answers into `manifest.infra_quirks` — a project-level block consulted by `engineer:fix` Step 4, `atdd:atdd` test runs, and `engineer:onboard` gap-check. `dae_resolve.py` validates schema. Quirks are advisory metadata, not health probes — they exist so the next agent doesn't rediscover the same friction.
 3. **Draft the charter, get sign-off** — draft `CHARTER.md`'s 7 mandatory sections (methodology, architecture, conventions, scope, agent team, quality stance, autonomy stance). For an existing codebase, pre-fill what's inferable from the repo. Then present it and get the human's explicit confirmation — section by section for the judgment-heavy ones (scope, quality stance, autonomy stance + path overrides). Do not proceed to Step 4 until the charter is signed off.
 4. **Create the manifest** — fill `.engineer/manifest.yml` (paths, roadmap/tracker, team, repos, quality thresholds, mutation, verification, autonomy, agentic_summary).
 5. **Tracking decision** — this is a human decision, not an agent default. Surface what the project appears to use (e.g. a repo full of Notion links → Notion) and ask the human to choose: `notion | github-projects | linear | jira | local`. `notion`: requires a connected Notion MCP — use it to create the tracker database (the `TrackedFeature` schema) or validate an existing one; DAE stores no API key (the MCP owns auth). `local`: feature folders are the tracker. Others: reserved — emit "not yet implemented". Never silently default to `local` to keep things moving. See `references/tracker.md`.

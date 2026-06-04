@@ -59,6 +59,14 @@ that no longer fits (amend `manifest.architecture` — and the charter prose).
 `dae_arch.py` exiting non-zero means Checkpoint 7's architecture-fitness exit
 criterion is unmet until the violations are resolved.
 
+### Step 3.5 — Runbook gate (if runbook.md exists)
+
+If `features/<slug>/runbook.md` exists, check that every step blocking a
+deploy-related AC is `completed: true`. If any blocking step is open while
+its dependent AC is asserting `met: true`, surface it as a verification
+gap and refuse to mark CP7 complete. The runbook's `blocking_acs` list is
+the source of truth — see `engineer/skills/plan/references/runbook-template.md`.
+
 ### Step 4 — Handoff
 
 Emit a summary per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`.

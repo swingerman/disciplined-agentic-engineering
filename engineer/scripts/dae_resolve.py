@@ -394,8 +394,48 @@ def validate_manifest(manifest):
 
     _validate_architecture(errors, manifest)
     _validate_infra(errors, manifest)
+    _validate_infra_quirks(errors, manifest)
 
     return errors, warnings
+
+
+def _validate_infra_quirks(errors, manifest):
+    """Validate the optional `infra_quirks:` section.
+
+    Schema:
+        infra_quirks:
+          runtime_pins:                  # optional, map of str -> str
+            java: "21"
+            node: "20.x"
+          port_map_file: ~/.x-ports.md   # optional, str path or null
+          framework_constraints:         # optional, list of str
+            - "Flutter web has no hot-reload"
+          recovery_commands:             # optional, map of str -> str
+            coresimulator_wedged: "killall -9 com.apple.CoreSimulator.CoreSimulatorService"
+    """
+    quirks = manifest.get("infra_quirks")
+    if quirks is None:
+        return
+    if not isinstance(quirks, dict):
+        errors.append("infra_quirks must be a mapping")
+        return
+    pins = quirks.get("runtime_pins")
+    if pins is not None:
+        if not isinstance(pins, dict) or not all(
+                isinstance(k, str) and isinstance(v, (str, int, float)) for k, v in pins.items()):
+            errors.append("infra_quirks.runtime_pins must be a map of str -> str/number")
+    pmf = quirks.get("port_map_file")
+    if pmf is not None and not isinstance(pmf, str):
+        errors.append("infra_quirks.port_map_file must be a string path or omitted")
+    fc = quirks.get("framework_constraints")
+    if fc is not None:
+        if not isinstance(fc, list) or not all(isinstance(x, str) for x in fc):
+            errors.append("infra_quirks.framework_constraints must be a list of strings")
+    rc = quirks.get("recovery_commands")
+    if rc is not None:
+        if not isinstance(rc, dict) or not all(
+                isinstance(k, str) and isinstance(v, str) for k, v in rc.items()):
+            errors.append("infra_quirks.recovery_commands must be a map of str -> str")
 
 
 def _validate_infra(errors, manifest):

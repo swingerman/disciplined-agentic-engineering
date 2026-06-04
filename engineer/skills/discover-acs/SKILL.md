@@ -46,6 +46,19 @@ blocks the skill. Then create one TodoWrite todo per workflow step below. See
    - **Edge cases** — empty / extreme / boundary / concurrency / partial state
    - **Errors & security** — missing/malformed input, authorization, external failure, abuse
    - **Cross-cutting** — audit, observability, idempotency, data lifecycle, performance
+
+   **3b. Domain coverage checklists (MANDATORY pass).** After the four interview passes, scan `feature.md`'s outcome and scope for surface signals and consult any matching checklist in `${CLAUDE_PLUGIN_ROOT}/references/ac-coverage/`:
+
+   | Signal phrase / keyword | Checklist file |
+   |---|---|
+   | public web page, site, marketing, HTML output | `web-seo.md` |
+   | login, OAuth, auth, session, token, SSO | `auth-oauth.md` |
+   | deploy, staging, production, infra, hosting, CI/CD | `deploy-model.md` |
+   | UI component / page targeting humans | `accessibility.md` (when written) |
+   | schema change, data backfill, migration, rename column | `data-migration.md` (when written) |
+
+   For each matched checklist: present its items as a single batched `AskUserQuestion` (multi-select) with the file's content as the option list. The human ticks "yes, this matters" / "no, out of scope" per item. Each ticked item becomes an AC candidate in Step 6/7. The checklists do **not** auto-create ACs without confirmation. image-titler shipped without a default `og:image` AC because nothing prompted the question — these checklists fix that class of gap.
+
 4. **Enforce domain language** — when implementation leaks in ("returns 401", "the endpoint", table/class names), soft-warn and rephrase to the user-observable behavior; user confirms. Don't block — educate.
 5. **Handle scope drift** — if a behavior surfaces outside `feature.md`'s outcome, offer three options: broaden `feature.md`, drop as out-of-scope, or park a separate `discuss`. User picks.
 6. **Coverage check** — before writing, report ACs captured + which passes were covered; if a pass was skipped, prompt once.
@@ -67,5 +80,6 @@ ACs ship with `human_action_needed: yes` (the human owns the AC contract) — so
 ## References
 
 - `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md` — when to dispatch vs stop
+- `${CLAUDE_PLUGIN_ROOT}/references/ac-coverage/README.md` — index of domain-aware coverage checklists
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — feature.md schema
 - The DAE methodology page — why ACs and specs are separate

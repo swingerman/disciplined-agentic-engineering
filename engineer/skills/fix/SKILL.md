@@ -21,6 +21,8 @@ Unlike ad-hoc fixes, the `fix` workflow enforces a regression spec that must be 
 
 **Infra contract.** Any step that runs tests, mutations, or the regression spec MUST first ensure required infra is up via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_infra.py ensure <names>` (reading the manifest's `infra:` section). On a `start-failed` failure → stop and surface the structured diagnosis. On undeclared required infra → stop with "declare in manifest" message. This applies to Steps 3, 4, 7.
 
+**Quirks contract.** Before booting infra or running test commands, consult `manifest.infra_quirks`: apply `runtime_pins` (e.g. ensure `JAVA_HOME` matches `runtime_pins.java`), read `port_map_file` if set, surface `framework_constraints` to the agent if relevant ("note: Flutter web has no hot-reload — full rebuild required"), and use `recovery_commands` keyed by failure signature when probing reports a known stuck state. Quirks exist so the agent doesn't rediscover what's already documented (nexthq Java/Flutter, mmc Apache opcache).
+
 ### Step 0 — Re-entry routing
 
 Before Step 1, probe for in-flight fixes via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_fix.py list_open_fixes` (any status != `closed`). Three cases:

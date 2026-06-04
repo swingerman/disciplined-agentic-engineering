@@ -536,5 +536,47 @@ class InfraValidationTests(unittest.TestCase):
         self.assertTrue(any("infra.default_teardown" in e for e in errors))
 
 
+class InfraQuirksValidationTests(unittest.TestCase):
+    _BASE = "paths:\n  features: features\n"
+
+    def _validate(self, quirks_yaml):
+        m = dr.read_manifest(self._BASE + quirks_yaml)
+        return dr.validate_manifest(m)
+
+    def test_absent_quirks_is_valid(self):
+        errors, _ = dr.validate_manifest(dr.read_manifest(self._BASE))
+        self.assertFalse(any("infra_quirks" in e for e in errors))
+
+    def test_valid_quirks_block(self):
+        errors, _ = self._validate(
+            "infra_quirks:\n"
+            "  runtime_pins:\n"
+            "    java: '21'\n"
+            "    node: '20.x'\n"
+            "  port_map_file: ~/.proj-ports.md\n"
+            "  framework_constraints:\n"
+            "    - 'Flutter web has no hot-reload'\n"
+            "  recovery_commands:\n"
+            "    coresimulator_wedged: 'killall -9 com.apple.CoreSimulator.CoreSimulatorService'\n"
+        )
+        self.assertFalse(any("infra_quirks" in e for e in errors), errors)
+
+    def test_quirks_not_mapping_rejected(self):
+        errors, _ = self._validate("infra_quirks: hello\n")
+        self.assertTrue(any("infra_quirks must be a mapping" in e for e in errors))
+
+    def test_bad_port_map_file_rejected(self):
+        errors, _ = self._validate("infra_quirks:\n  port_map_file: 42\n")
+        self.assertTrue(any("port_map_file" in e for e in errors))
+
+    def test_bad_framework_constraints_rejected(self):
+        errors, _ = self._validate(
+            "infra_quirks:\n"
+            "  framework_constraints:\n"
+            "    not_a_list_of_str: true\n"
+        )
+        self.assertTrue(any("framework_constraints" in e for e in errors))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
