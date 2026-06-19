@@ -34,7 +34,7 @@ import dae_resolve
 # progress.md and is added separately.
 FRONTMATTER_FIELDS = (
     "slug", "title", "outcome", "status",
-    "autonomy_level", "target", "owner", "area", "tracker_ref",
+    "autonomy_level", "assignee", "target", "owner", "area", "tracker_ref",
 )
 
 

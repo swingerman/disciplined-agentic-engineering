@@ -12,7 +12,12 @@ One per feature. DAE-managed fields (the driver writes only these — it never
 touches tracker-side comments, labels, assignees, custom views):
 
 `slug`, `title`, `outcome`, `status`, `current_checkpoint`, `autonomy_level`,
-`target`, `owner`, `area`, `tracker_ref`.
+`assignee`, `target`, `owner`, `area`, `tracker_ref`.
+
+`assignee` is the **execution target** — `human` | `local` | `cloud` — i.e. who
+runs the next checkpoint. It is distinct from any native people-assignee column
+the tracker manages (which DAE never touches), and from `owner` (who is
+accountable).
 
 Sources: all from `feature.md` frontmatter except `current_checkpoint` (from `progress.md`).
 

@@ -16,7 +16,7 @@ A prep step (not a checkpoint) between `feature-init` and `discover-acs`, on any
 ## Workflow
 
 1. **Resolve + locate** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`); locate the feature (slug arg or branch name). Reject if no folder / no `feature.md`.
-2. **Silent batch load** — without narrating: `feature.md`, `CHARTER.md`, `manifest.yml`, prior `handoffs/` (especially the originating `*-discuss.md`), and the files named in `feature.md`'s "Related code / design pointers".
+2. **Silent batch load** — without narrating: `feature.md`, `CHARTER.md`, `manifest.yml`, prior `handoffs/` (especially the originating `*-discuss.md`), and the files named in `feature.md`'s "Related code / design pointers". When loading those code pointers, prefer LSP — `documentSymbol` for file shape, `hover` for signatures/types, `workspaceSymbol` to pull in the symbols they reference — over reading whole files blind, when an LSP MCP capability is available; fall back to grep + Read otherwise. See `${CLAUDE_PLUGIN_ROOT}/references/code-lookup.md`.
 3. **Orient** — give a concise summary: outcome, scope, autonomy level (+ charter cap), key prior decisions, related code, relevant ADRs.
 4. **One prompt** — ask exactly one question: anything else to load? If the user names a new code pointer, load it and offer to add it to `feature.md`. Then stop — prime-context orients, it does not interview.
 5. **Breadcrumb handoff** — emit a tiny handoff recording what was loaded.
