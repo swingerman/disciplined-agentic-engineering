@@ -34,6 +34,7 @@ human_action_needed: <yes | no>
 human_action_kind: <review | decision | approval | none>   # optional
 recommended_next: <next checkpoint / skill / "done">
 tracker_update: <tracker_ref + what changed | none>         # optional
+cloud_session_url: <claude.ai/code session URL + PR link>   # optional; set when this checkpoint ran on a cloud agent
 status: <complete | interrupted>
 ---
 
@@ -62,7 +63,7 @@ What state was written. Optional section.
 
 - **Required frontmatter:** `skill`, `agent_id`, `started`, `ended`, `artifacts`, `human_action_needed`, `recommended_next`, `status`
 - **Required on checkpoint-advancing skills:** `checkpoint`, `exit_criteria` — required when `checkpoint` is set; both omitted for off-pipeline skills (`checkpoint: null`).
-- **Optional frontmatter:** `agent_role`, `findings_summary`, `human_action_kind`, `tracker_update`
+- **Optional frontmatter:** `agent_role`, `findings_summary`, `human_action_kind`, `tracker_update`, `cloud_session_url`
 - **Required body:** What I did, Artifacts produced, Human action needed?, Recommended next step
 - **Optional body:** Findings, Tracker update
 

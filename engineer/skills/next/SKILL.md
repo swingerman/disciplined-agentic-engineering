@@ -28,6 +28,7 @@ Resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_r
 - **Parked ideas** — `features/*/` with `status: parked`; `.engineer/discussions.log`
 - **Pending human actions** — recent `handoffs/*.md` (per-feature and `.engineer/handoffs/`) flagged `human_action_needed: yes`
 - **Session-log next-tasks** — the latest `session-log.md` entry per active feature ("Next tasks")
+- **Dispatched to cloud** — features whose latest handoff carries `cloud_session_url` (running on a cloud agent; PR pending). Surface as DISPATCHED — not actionable until the PR lands.
 - **CHARTER.md + manifest** — autonomy levels and path overrides, for execution-mode advice
 - **Open fixes** — `.engineer/fixes/*.md` via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_fix.py list_open_fixes` (status != closed)
 - **Stale merged branch** — if the current branch is not `main`/`master`, run `git fetch origin --quiet` then check `git merge-base --is-ancestor HEAD origin/HEAD` (fallback `origin/main`). If true, the branch is merged and lingering — surface it as a STALE BRANCH item.
@@ -36,7 +37,7 @@ Resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_r
 
 If a stale merged branch was detected, defer to the `post-merge` skill — it owns the full cleanup flow (checkout, pull, branch -d, prune, tracker update). At autonomy `high`/`medium`, auto-invoke `/engineer.post-merge` before continuing to Step 2. At `low`, surface the finding and stop until the user invokes it themselves. Do not inline the cleanup commands here — keep `next` advisory and let the dedicated skill do the work, so the post-merge handoff lands in the audit trail.
 
-### Step 2 — Triage into five buckets
+### Step 2 — Triage into six buckets
 
 ```
 NEEDS YOUR DECISION   — blocked features; handoffs flagged human_action_needed.
@@ -47,9 +48,13 @@ OPEN FIXES            — bug-fix artifacts not yet closed. Sub-priority within 
                          3. blocks_user: false                          ← bottom
                          Within each tier, order by severity (critical, high, medium, low).
 READY TO ADVANCE      — in-flight features sitting at a checkpoint that can proceed.
-READY TO DISPATCH     — features / consolidation tasks that can go to a remote agent
+READY TO DISPATCH     — features / consolidation tasks that can go to a cloud agent
                         right now (bounded, automatable verification, no mid-stream
-                        human input needed).
+                        human input needed). At medium/high autonomy the dispatch
+                        router auto-sends these (gated by dae_delegable.py).
+DISPATCHED            — already running on a cloud agent (handoff carries
+                        cloud_session_url). Show the session / PR link; review when
+                        it lands. Not actionable until then.
 COULD START           — the next consolidation-backlog item; parked ideas worth
                         promoting; fresh work.
 ```
@@ -62,7 +67,7 @@ Priority order:
 2. **Triage priority / dates** — consolidation-backlog order, feature `target` dates.
 3. **Dispatchability** — if the human has limited time, favour surfacing what can be *dispatched* (freeing the human) over what *needs* them.
 
-Present the five buckets, then **one top recommendation** — the single best next action — with a one-line rationale and a suggested execution mode (you, local subagent, agent team, or remote).
+Present the six buckets, then **one top recommendation** — the single best next action — with a one-line rationale and a suggested execution mode (you, local subagent, agent team, or cloud agent — for the last, the dispatch router gates via `dae_delegable.py`).
 
 ### Step 4 — Stop
 

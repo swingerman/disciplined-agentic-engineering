@@ -54,6 +54,7 @@ Heuristics — run cheapest first to bound token cost:
 2. Error text grep across `.engineer/features/*/feature.md`.
 3. Recent commits on the affected path (`git log --oneline -- <file>`).
 4. User-provided hints.
+5. From the failing symbol, trace root cause and blast radius via LSP — `findReferences` + call-hierarchy (`incomingCalls`) to see who reaches the broken code — when an LSP MCP capability is available; fall back to grep otherwise. See `${CLAUDE_PLUGIN_ROOT}/references/code-lookup.md`.
 
 **Match resolution:**
 - Single clean candidate and `prime-context` confirms strong relevance → AUTO-POPULATE `feature_refs`; record `match_mode: auto`.

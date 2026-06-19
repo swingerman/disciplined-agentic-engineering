@@ -24,6 +24,19 @@ After a skill writes its handoff, the next checkpoint often needs a **fresh agen
 
 Effective autonomy = `feature.md` `autonomy_level`, capped by `manifest.autonomy.path_overrides` for the feature's path. Read this once during the skill's resolve step; it's already loaded.
 
+## Channel — cloud-first, local fallback
+
+The autonomy table decides *whether* to dispatch. This decides *where*. Once a DISPATCH decision is made, prefer a **cloud agent** and fall back to a **local subagent** only when the environment requires it.
+
+1. Run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_delegable.py <feature-dir>` → `{channel, cloud_blockers}`.
+2. **`channel: cloud`** and the project is remote-ready (`manifest.remote.ready: true`) → dispatch to the cloud: call the **Agent tool with `isolation: "remote"`** (fresh clone, runs in the background, opens a `claude/*` PR; its result returns to this pipeline). Use the same brief template below.
+   - If `isolation: "remote"` is unavailable in this environment **and** the feature is `assignee: cloud` with a routine configured, fire the routine instead via the **`RemoteTrigger` `run` action** (fire-and-forget; the human reviews in claude.ai/code). Otherwise fall back to local.
+3. **`channel: local`** (any blocker), or `manifest.remote.ready` is false/unset → dispatch a **local** subagent via the Agent tool (default isolation). The `cloud_blockers` list says why; surface it in one line at `medium`/`high`.
+
+`assignee: cloud` is a *request*, not an override — a hard blocker (stdio MCP, unpushed branch, local infra) still routes local. `dae_delegable.py` is the source of truth; never hand-wave past a blocker.
+
+When a cloud dispatch opens a PR, record `cloud_session_url` and the PR link in the feature's handoff so `progress-log` projects them and `next` can show the feature as **DISPATCHED — awaiting cloud PR**.
+
 ## Special case — the next agent needs infrastructure (emulators, drivers, services)
 
 If the next checkpoint's work needs running infrastructure, **do not** write a "start this manually" command and stop. Instead:
@@ -56,6 +69,7 @@ prompt:
   Constraints:
   - You are the fresh agent the charter §6 calls for; do NOT relax independence.
   - Honour the effective autonomy_level: <low|medium|high>.
+  - Code lookup: <LSP is available — use it for find-references / definitions / call-hierarchy | LSP is unavailable — fall back to grep + Read>. See references/code-lookup.md.
 
   Report on completion: <what the parent skill expects back>.
 ```
