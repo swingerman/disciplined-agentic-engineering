@@ -43,6 +43,8 @@ Write `.engineer/fixes/<YYYY-MM-DD-slug>.md` via the schema in `references/artif
 
 CLI shortcut: `/engineer.fix "title" --source <url>` pre-fills title and source; skip the prompt for those fields.
 
+**From a tracker capture:** if this fix is being promoted from an untriaged tracker row (a bug a human added directly — no `Slug`; see *Tracker-as-intake* in `engineer/references/tracker.md`), pre-fill title / severity / source from the row, set the fix's `tracker_ref` to that row, and write the fix slug back to it — don't leave the row orphaned or create a duplicate.
+
 Validate the new artifact: `${CLAUDE_PLUGIN_ROOT}/scripts/dae_fix.py --validate <fix-file>`. Surface any errors before proceeding.
 
 ### Step 2 — Investigate

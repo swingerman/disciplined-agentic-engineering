@@ -26,6 +26,7 @@ Resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_r
 - **In-flight features** — every `features/*/feature.md` (status) + `progress.md` (current checkpoint; whether it's blocked or ready to advance)
 - **Consolidation backlog** — `.engineer/consolidation.md` if present (coverage backlog + triage order)
 - **Parked ideas** — `features/*/` with `status: parked`; `.engineer/discussions.log`
+- **Tracker captures (triage queue)** — tasks a human added *directly to the onboarded tracker*: rows with no `Slug` yet (the `reconcile()` orphan-as-intake case, see `references/tracker.md`), or `.engineer/inbox.md` lines in local mode. These are quick-captured bugs/ideas/tasks awaiting triage — not yet a feature or fix.
 - **Pending human actions** — recent `handoffs/*.md` (per-feature and `.engineer/handoffs/`) flagged `human_action_needed: yes`
 - **Session-log next-tasks** — the latest `session-log.md` entry per active feature ("Next tasks")
 - **Dispatched to cloud** — features whose latest handoff carries `cloud_session_url` (running on a cloud agent; PR pending). Surface as DISPATCHED — not actionable until the PR lands.
@@ -37,7 +38,7 @@ Resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_r
 
 If a stale merged branch was detected, defer to the `post-merge` skill — it owns the full cleanup flow (checkout, pull, branch -d, prune, tracker update). At autonomy `high`/`medium`, auto-invoke `/engineer.post-merge` before continuing to Step 2. At `low`, surface the finding and stop until the user invokes it themselves. Do not inline the cleanup commands here — keep `next` advisory and let the dedicated skill do the work, so the post-merge handoff lands in the audit trail.
 
-### Step 2 — Triage into six buckets
+### Step 2 — Triage into seven buckets
 
 ```
 NEEDS YOUR DECISION   — blocked features; handoffs flagged human_action_needed.
@@ -55,6 +56,11 @@ READY TO DISPATCH     — features / consolidation tasks that can go to a cloud 
 DISPATCHED            — already running on a cloud agent (handoff carries
                         cloud_session_url). Show the session / PR link; review when
                         it lands. Not actionable until then.
+TRIAGE                — tasks added directly to the tracker (a row with no Slug
+                        yet) or to .engineer/inbox.md — bugs/ideas/tasks dropped
+                        in for DAE to pick up, not yet a feature or fix. For each:
+                        promote (→ /fix, /discuss, /feature-init) or defer. A
+                        triage bug that blocks users ranks with OPEN FIXES top tier.
 COULD START           — the next consolidation-backlog item; parked ideas worth
                         promoting; fresh work.
 ```
@@ -63,11 +69,13 @@ COULD START           — the next consolidation-backlog item; parked ideas wort
 
 Priority order:
 1. **Unblocking first** — a blocked feature or a pending human-action stalls everything downstream; clearing it usually beats starting something new.
-1b. **User-blocking defects** — an OPEN FIX with `blocks_user: true` and no workaround ranks above starting fresh feature work; a real defect hitting users now is more urgent than forward progress on new scope.
+1b. **User-blocking defects** — an OPEN FIX with `blocks_user: true` and no workaround ranks above starting fresh feature work; a real defect hitting users now is more urgent than forward progress on new scope. A TRIAGE capture that reads as a user-blocking bug ranks here too — promote it to a `/fix` first.
 2. **Triage priority / dates** — consolidation-backlog order, feature `target` dates.
 3. **Dispatchability** — if the human has limited time, favour surfacing what can be *dispatched* (freeing the human) over what *needs* them.
 
-Present the six buckets, then **one top recommendation** — the single best next action — with a one-line rationale and a suggested execution mode (you, local subagent, agent team, or cloud agent — for the last, the dispatch router gates via `dae_delegable.py`).
+Present the seven buckets, then **one top recommendation** — the single best next action — with a one-line rationale and a suggested execution mode (you, local subagent, agent team, or cloud agent — for the last, the dispatch router gates via `dae_delegable.py`).
+
+**Promoting a TRIAGE item** is the human's call — `next` only recommends. *Work it now* → promote to the right unit and start: bug→`/fix`, idea→`/discuss`, task→`/feature-init` (each reads the tracker row as intake, reuses its `tracker_ref`, and writes the assigned `Slug` back — no duplicate row). *Later* → leave it, optionally raise a `priority`/`Status`. *Drop* → set `Status: wontfix`.
 
 ### Step 4 — Stop
 
@@ -89,6 +97,10 @@ READY TO ADVANCE (1)
 READY TO DISPATCH (2)
   • consolidation #1 core-image-generation — full ATDD coverage; remote one-shot
   • consolidation #3 mcp-connector — remote one-shot
+
+TRIAGE (2)
+  • bug: CSV export drops the UTF-8 BOM | blocks_user=yes — added to tracker, no slug yet
+  • idea: dark mode for the settings page
 
 COULD START (1)
   • parked: bulk-admin-export — discussed 3 weeks ago; promote if priorities allow
