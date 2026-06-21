@@ -9,12 +9,13 @@ Create a feature folder for the DAE pipeline — `feature.md` (the Ready contrac
 
 ## When to use
 
-Three paths:
+Four paths:
 - **From `discuss`** — receives a `feature_intake` payload in context (park or promote outcome). No interview.
 - **Standalone** — no payload; run the intake interview.
+- **From a tracker capture** — promoting an untriaged row a human added directly to the tracker (no `Slug`; see *Tracker-as-intake* in `references/tracker.md`). Pre-fill intake from the row (its title → `title`/`outcome`, `Type`, any notes); confirm the rest. Reuse the row — don't create a new one (Step 9).
 - **Onboarding intake** — invoked by `onboard` (or directly) to formalize work that *already exists* in the codebase. The feature folder is reverse-engineered from an existing spec / branch / implementation. Enters at `status: in-progress` or `done`, not `ready`.
 
-Detect from-discuss vs standalone by whether a `feature_intake` payload is present; onboarding intake is signalled by `onboard` (or an explicit "formalize existing feature" request).
+Detect from-discuss vs standalone by whether a `feature_intake` payload is present; a tracker capture is signalled by a slug-less `tracker_ref` passed in (typically from `next`); onboarding intake is signalled by `onboard` (or an explicit "formalize existing feature" request).
 
 **Not for:** brand-new ideas worth exploring first (`discuss`), or editing an existing feature (`feature-edit`).
 
@@ -36,7 +37,7 @@ pipeline ahead. The breadcrumb is advisory and never blocks. See
 6. **Create** — `features/NNN-<slug>/` with `feature.md` (per the Foundation Design feature.md schema), empty `handoffs/`, empty `.build/`. Add `.build/` to `.gitignore`. Include `branch: <name>` in `feature.md` frontmatter — the slug for greenfield; the adopted branch for onboarding intake. This is read by `${CLAUDE_PLUGIN_ROOT}/scripts/dae_branch.py` at every later checkpoint's Step 0 to enforce branch hygiene. If a `validation_method` was provided in the intake, include it in the frontmatter too — downstream skills (`plan`, `consistency-check`) consume it. Do NOT create `progress.md`/`acs.md`/`spec.md`/`plan.md`/`session-log.md` — downstream skills produce those.
 7. **Branch** — auto-create `git checkout -b <slug>` unless `CHARTER.md` declares a manual git policy. **If the branch already exists** (common in onboarding intake — the feature's work is already on a branch) → use it, don't recreate.
 8. **LSP language note** — if the feature touches a language not present in `manifest.validation.lsp.servers`, surface a one-line note ("this feature is mostly Rust — no LSP server recorded for Rust; LSP-backed lookup will fall back to grep+AST"). Inform-only; never blocks. Skip if `manifest.validation.lsp.servers` is absent (the project hasn't done the LSP probe yet — `onboard`'s gap-check will catch it).
-9. **Tracker** — upsert a `TrackedFeature` via the driver per `references/tracker.md` (`local` = the `dae_tracker_local.py` no-op; `notion` = the connected Notion MCP); write the returned ref to `feature.md` `tracker_ref`.
+9. **Tracker** — upsert a `TrackedFeature` via the driver per `references/tracker.md` (`local` = the `dae_tracker_local.py` no-op; `notion` = the connected Notion MCP); write the returned ref to `feature.md` `tracker_ref`. **Promoting a tracker capture:** upsert *into the existing row* (the slug-less `tracker_ref` passed in) — write the assigned `Slug`/`Status` back to it rather than creating a duplicate.
 10. **Handoff** — emit a summary.
 
 ## Handoff

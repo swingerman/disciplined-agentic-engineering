@@ -67,6 +67,35 @@ labels, views) are never touched — they survive every sync.
 `progress-log --project` and `consistency-check`. Drift is reported, not
 auto-merged; the human resolves.
 
+## Tracker-as-intake — untriaged captures
+
+The tracker is normally a *projection* of local truth. The one exception is
+**intake**: a human can add a task — a bug or an improvement — directly to the
+onboarded tracker, and DAE picks it up.
+
+**Detection.** DAE owns slug assignment, so a human-created row has **no
+`Slug`**. That is the contract: *a tracker row with an empty `Slug` is an
+untriaged capture.* Optional helpers the human may set — `Type` (`bug | idea |
+task`) and `Status: Inbox` — make intent explicit but aren't required; absent
+`Type`, `next` infers it from the row's title/notes.
+
+**Surfacing.** `reconcile()` already flags rows with no local feature behind
+them. A slug-less orphan is **intake to triage**, not drift to fix — `next`
+surfaces it in its TRIAGE bucket; `consistency-check` / `progress-log
+--project` must NOT report it as an error.
+
+**Promotion.** Triaging a capture into a unit of work (`feature-init`, `fix`,
+or `discuss`) reuses the existing row: set the new feature/fix's `tracker_ref`
+to that row and write the assigned `Slug` (+ `Status`) **back to the same row** —
+never create a duplicate. Once the row has a slug, normal local-wins projection
+resumes.
+
+**Local mode.** There's no external tracker to add a row to, so the equivalent
+capture queue is `.engineer/inbox.md` — one freeform line per item
+(`- [ ] bug: <title> | blocks_user:yes (YYYY-MM-DD)`), flipped to
+`- [x] … → <pointer>` once triaged. `next` reads it the same way. No parser —
+it's eyeballed markdown; add one only if the list outgrows that.
+
 ## References
 
 - [Tracker Integration Foundation](https://www.notion.so/35a5ecdee0e28168b1aee324c267fd13) — the full contract, sync triggers, column schema
