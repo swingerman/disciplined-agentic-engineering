@@ -136,6 +136,18 @@ Before running mutation testing, confirm:
 - The project has meaningful unit tests (mutation testing runs against unit tests)
 - No uncommitted changes (mutations modify source files temporarily)
 
+**Introversion pre-pass (recommended).** If the `engineer` plugin is installed,
+run its `dae_introvert.py <root>` first — a cheap static scan that flags tests
+which can pass without asserting on SUT output (no assertion, or every assertion
+nested in a conditional/loop/try). These are guaranteed-weak tests; fixing them
+before mutation makes the run cheaper and the suite stronger, and the
+`conditional-assertion` class is caught even when no mutant happens to exercise
+the bypassed path. A configured `manifest.introversion.backend` (e.g. a
+`deintroverter` that backward-slices each assertion to the SUT) does the deeper
+data-flow classification; absent one, a built-in Python-AST fallback covers the
+cheap cases. A test flagged introverted **and** carrying a surviving mutant is a
+high-confidence vacuous test — prioritise it in Step 4.
+
 ### Step 2: Set Up Mutation Tool
 
 If no mutation tool is configured:

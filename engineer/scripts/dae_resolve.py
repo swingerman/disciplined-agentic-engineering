@@ -342,6 +342,7 @@ def validate_manifest(manifest):
     _check_enum(errors, manifest, "git", "manual", GIT_MANUAL_VALUES)
     _check_enum(errors, manifest, "duplication", "tool", DUPLICATION_TOOLS)
     _check_enum(errors, manifest, "duplication", "skip", DUPLICATION_SKIP_VALUES)
+    _check_enum(errors, manifest, "introversion", "skip", DUPLICATION_SKIP_VALUES)
 
     val = manifest.get("validation")
     if isinstance(val, dict):
