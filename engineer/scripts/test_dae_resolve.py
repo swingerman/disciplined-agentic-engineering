@@ -278,6 +278,48 @@ class TestImpactAnalysisFlag(unittest.TestCase):
         self.assertEqual([e for e in errors if "impact_analysis" in e], [])
 
 
+class RoadmapValidationTests(unittest.TestCase):
+    BASE = {"methodology_version": "0.2", "tracker": {"type": "local"}}
+
+    def _validate(self, roadmap):
+        m = dict(self.BASE, roadmap=roadmap)
+        return dr.validate_manifest(m)[0]
+
+    def test_native_and_reserved_types_valid(self):
+        for t in ("local", "notion", "confluence", "gdoc",
+                  "github-projects", "none"):
+            errors = self._validate({"type": t})
+            self.assertEqual([e for e in errors if "roadmap" in e], [],
+                             "expected %s to be a valid roadmap type" % t)
+
+    def test_unknown_type_rejected(self):
+        errors = self._validate({"type": "trello"})
+        self.assertTrue(any("roadmap" in e and "type" in e for e in errors))
+
+    def test_other_requires_platform_url_and_access(self):
+        errors = self._validate({"type": "other"})
+        self.assertTrue(any("roadmap.platform" in e for e in errors))
+        self.assertTrue(any("roadmap.url" in e for e in errors))
+        self.assertTrue(any("roadmap.access" in e for e in errors))
+
+    def test_other_fully_declared_is_valid(self):
+        errors = self._validate({
+            "type": "other", "platform": "Trello",
+            "url": "https://trello.com/b/abc", "access": "mcp"})
+        self.assertEqual([e for e in errors if "roadmap" in e], [])
+
+    def test_other_bad_access_rejected(self):
+        errors = self._validate({
+            "type": "other", "platform": "Trello",
+            "url": "https://trello.com/b/abc", "access": "carrier-pigeon"})
+        self.assertTrue(any("roadmap.access" in e for e in errors))
+
+    def test_missing_type_rejected(self):
+        m = dict(self.BASE)
+        errors = dr.validate_manifest(m)[0]
+        self.assertTrue(any("roadmap.type" in e for e in errors))
+
+
 class GitManualTests(unittest.TestCase):
     def test_true_is_valid(self):
         m = dr.read_manifest("git:\n  manual: true\n")

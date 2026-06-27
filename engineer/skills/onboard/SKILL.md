@@ -22,12 +22,13 @@ A feature is **fully ATDD-covered** when its folder has `feature.md`, `acs.md`, 
 
 ## Human-decision checkpoints
 
-Onboarding is a **ceremony**, not a mechanical scaffold. Two of its outputs are *design decisions* reserved for the human — the agent drafts, the human decides:
+Onboarding is a **ceremony**, not a mechanical scaffold. Three of its outputs are *design decisions* reserved for the human — the agent drafts, the human decides:
 
 - **The charter** (Step 3) — architecture, conventions, scope, quality and autonomy stance.
 - **The tracking decision** (Step 5) — which tracker the project uses.
+- **The roadmap decision** (Step 5b) — which platform hosts the strategic roadmap, and (if one already exists) how it's migrated in. Strategy is a human call, like the charter.
 
-Pre-filling from an existing codebase is encouraged. **Rubber-stamping is not.** Onboarding does NOT complete until the human has explicitly signed off on the charter and chosen the tracker — exactly as `plan` does for architecture (agent proposes, human confirms before proceeding). If the human is not available to decide, stop and emit a handoff with `human_action_needed: decision` — do not auto-decide and move on.
+Pre-filling from an existing codebase is encouraged. **Rubber-stamping is not.** Onboarding does NOT complete until the human has explicitly signed off on the charter and chosen the tracker and roadmap host — exactly as `plan` does for architecture (agent proposes, human confirms before proceeding). If the human is not available to decide, stop and emit a handoff with `human_action_needed: decision` — do not auto-decide and move on.
 
 ## Workflow (full onboard)
 
@@ -80,6 +81,12 @@ breadcrumb.
 3. **Draft the charter, get sign-off** — draft `CHARTER.md`'s 7 mandatory sections (methodology, architecture, conventions, scope, agent team, quality stance, autonomy stance). For an existing codebase, pre-fill what's inferable from the repo. Then present it and get the human's explicit confirmation — section by section for the judgment-heavy ones (scope, quality stance, autonomy stance + path overrides). Do not proceed to Step 4 until the charter is signed off.
 4. **Create the manifest** — fill `.engineer/manifest.yml` (paths, roadmap/tracker, team, repos, quality thresholds, mutation, verification, autonomy, remote, agentic_summary). Optional `introversion:` block tunes the harden-time vacuous-test scan (`backend:` = a test-introversion analyzer command like `deintroverter`; `skip: true` to opt out) — see `engineer/scripts/dae_introvert.py`.
 5. **Tracking decision** — this is a human decision, not an agent default. Surface what the project appears to use (e.g. a repo full of Notion links → Notion) and ask the human to choose: `notion | github-projects | linear | jira | local`. `notion`: requires a connected Notion MCP — use it to create the tracker database (the `TrackedFeature` schema) or validate an existing one; DAE stores no API key (the MCP owns auth). `local`: feature folders are the tracker. Others: reserved — emit "not yet implemented". Never silently default to `local` to keep things moving. When creating or validating the schema, include a `Type` column (`bug | idea | task`, optional) and an `Inbox` value in the status options, and tell the human the **capture flow**: add a task directly to the tracker as a row with no `Slug` (and optionally `Status: Inbox`) and `next` will triage it — see *Tracker-as-intake* in `references/tracker.md`. See `references/tracker.md`.
+5b. **Roadmap decision** — the strategic feature-list altitude, chosen *independently* of the tracker (see `references/roadmap.md`). A human design decision.
+   - **Reachability precondition first.** A roadmap is onboardable only if DAE can reach its host programmatically — a connected **MCP**, an installed **CLI**, or a usable **API** (reuse the Step 2 CLI/MCP probe results). A manual-only host **cannot be onboarded**: record `roadmap.type: none` and tell the human exactly what to connect to enable it later. No half-support.
+   - **Choose & record the host** — surface what the repo appears to use, then ask the human to pick `roadmap.type`: `local | notion | confluence | gdoc | github-projects | other | none`. `local` (a managed block in `.engineer/roadmap.md`) is always reachable and the greenfield default — don't force a host prompt on an empty project. `notion` needs the Notion MCP. `confluence | gdoc | github-projects` are onboardable iff their MCP/CLI is present (else `none`). `other` requires `platform:` + `url:` + `access: mcp|cli|api` in the manifest. Write the chosen block to `manifest.roadmap`.
+   - **Then link / migrate / create** (see *Migration* in `references/roadmap.md`):
+     - **Discover** roadmap-shaped sources read-only — `ROADMAP.md` / `docs/roadmap.md` / a `## Roadmap` README section; a Notion page or DB named "Roadmap"; GitHub milestones / Projects / `epic`-labelled issues; an existing `manifest.roadmap` ref.
+     - **Link** if a source is already in DAE shape on the chosen host. **Migrate** if a source exists elsewhere/in another shape — parse it into `RoadmapItem`s (human confirms/edits), write to the chosen host; cross-host is fine; join items to discovered features so shipped/in-progress work back-links its `feature_slug` instead of re-listing as "planned"; leave the source in place as `migrated_from` (never delete). **Create** (seed from the Step 8 triage) if nothing is found — for `local`, `dae_roadmap.py init` then `upsert` the seeds.
 6. **Bootstrap layout** — create `features/`, empty `.engineer/discussions.log`; ensure `.build/` is gitignored.
 7. **Discover features** — walk the repo (read-only) for every feature-shaped chunk, **documented and undocumented**:
    - *Documented* — Speckit `specs/NNN-slug/`, feature branches, `docs/specs/*.md`, GitHub Issues used as specs, informal README specs.
@@ -96,7 +103,7 @@ breadcrumb.
 
 ## Gap-check mode
 
-Manifest exists → don't re-onboard. Validate: `CHARTER.md` has all 7 sections; `manifest.yml` schema-valid; `features/` numbering monotonic; tracker config resolves; charter roles == `manifest.team.default_roles`. Report gaps with suggested fixes (mirrors `consistency-check --project`).
+Manifest exists → don't re-onboard. Validate: `CHARTER.md` has all 7 sections; `manifest.yml` schema-valid; `features/` numbering monotonic; tracker config resolves; **roadmap config resolves and its host is still reachable** (MCP/CLI/API present; if it went unreachable, flag it — `next` will be running blind to the roadmap); charter roles == `manifest.team.default_roles`. If a *new* external roadmap source has appeared since onboarding (e.g. a `ROADMAP.md` was added), surface it as a re-migration offer rather than acting. Report gaps with suggested fixes (mirrors `consistency-check --project`).
 
 **Strictly read-only. Forbidden:**
 - `git checkout`, `git pull`, `git fetch`, `git merge`, `git rebase`, `git branch -d/-D` — no git state mutations of any kind.
@@ -126,5 +133,6 @@ If onboarding stopped because the human wasn't available to sign off the charter
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — charter format (§3), manifest schema (§2), storage layout (§1)
 - [Discuss & Upstream Funnel](https://www.notion.so/35a5ecdee0e281eaa35fced0c4e23384) — methodology_root, onboarding intake
 - `references/tracker.md` — the tracker drivers, setup, the Notion mapping
+- `references/roadmap.md` — the roadmap drivers, the reachability precondition, link/migrate/create
 - [Tracker Integration](https://www.notion.so/35a5ecdee0e28168b1aee324c267fd13) — the full contract
 - `engineer/scripts/dae_infra.py` — what the manifest infra entries feed

@@ -37,6 +37,14 @@ import sys
 
 KNOWN_METHODOLOGY_VERSIONS = {"0.1", "0.2"}
 TRACKER_TYPES = {"notion", "github-projects", "linear", "jira", "local"}
+# The roadmap is the strategic feature-list altitude (see references/roadmap.md).
+# Its host is chosen independently of the tracker, so its enum is its own —
+# broader, and including the explicit opt-out `none` and the free-text `other`.
+ROADMAP_TYPES = {"local", "notion", "confluence", "gdoc",
+                 "github-projects", "other", "none"}
+# A roadmap can only be onboarded if DAE can reach its host programmatically.
+# The `other` host must declare which channel DAE drives it through.
+ROADMAP_OTHER_ACCESS = {"mcp", "cli", "api"}
 AUTONOMY_LEVELS = {"low", "medium", "high"}
 MUTATION_SCOPES = {"changed_files", "changed_module", "full"}
 MUTATION_CADENCES = {"per_pr", "per_merge", "per_release", "on_demand"}
@@ -330,7 +338,7 @@ def validate_manifest(manifest):
             errors.append("missing required field: %s.type" % section)
 
     # Enums
-    _check_enum(errors, manifest, "roadmap", "type", TRACKER_TYPES)
+    _check_enum(errors, manifest, "roadmap", "type", ROADMAP_TYPES)
     _check_enum(errors, manifest, "tracker", "type", TRACKER_TYPES)
     _check_enum(errors, manifest, "mutation", "scope", MUTATION_SCOPES)
     _check_enum(errors, manifest, "mutation", "cadence", MUTATION_CADENCES)
@@ -394,10 +402,41 @@ def validate_manifest(manifest):
                           "team.default_roles must include 'verifier'")
 
     _validate_architecture(errors, manifest)
+    _validate_roadmap(errors, manifest)
     _validate_infra(errors, manifest)
     _validate_infra_quirks(errors, manifest)
 
     return errors, warnings
+
+
+def _validate_roadmap(errors, manifest):
+    """Validate the `roadmap:` section beyond its `type` enum.
+
+    A roadmap can only be onboarded if DAE can reach its host
+    programmatically (a connected MCP, an installed CLI, or a usable API) —
+    see references/roadmap.md. The manifest can't probe reachability, but it
+    enforces that the catch-all `other` host declares HOW DAE reaches it, so
+    `next`/`onboard` never have to guess (a manual-only host is `none`).
+    """
+    block = manifest.get("roadmap")
+    if not isinstance(block, dict):
+        return
+    if block.get("type") != "other":
+        return
+    if not block.get("platform"):
+        errors.append("roadmap.type is 'other' — roadmap.platform "
+                      "(the hosting platform's name) is required")
+    if not (block.get("url") or block.get("ref")):
+        errors.append("roadmap.type is 'other' — roadmap.url (or "
+                      "roadmap.ref) pointing at the roadmap is required")
+    access = block.get("access")
+    if access is None:
+        errors.append("roadmap.type is 'other' — roadmap.access "
+                      "(mcp|cli|api) is required; a manual-only host "
+                      "cannot be onboarded")
+    elif access not in ROADMAP_OTHER_ACCESS:
+        errors.append("roadmap.access = %r — must be one of %s"
+                      % (access, sorted(ROADMAP_OTHER_ACCESS)))
 
 
 def _validate_infra_quirks(errors, manifest):

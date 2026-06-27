@@ -17,13 +17,14 @@ The upstream funnel of DAE — a divergent brainstorm (forked from `superpowers:
 ## Workflow
 
 1. **Resolve + load** — resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`). Load `CHARTER.md` and the last ~20 lines of `.engineer/discussions.log`. With a slug arg: also load that feature's `feature.md` + prior `handoffs/*-discuss.md`; reject if its status is `ready`/`in-progress` (→ `feature-edit`) or `done`.
-2. **Open** — fresh: "What are you thinking about?" After the first prompt, soft-match the topic against parked feature titles/areas; if a likely match, offer once to continue it. Continue mode: echo prior state in one line, then resume.
+2. **Open** — fresh: "What are you thinking about?" After the first prompt, soft-match the topic against parked feature titles/areas **and against roadmap items** (driver per `references/roadmap.md`; `local` = `${CLAUDE_PLUGIN_ROOT}/scripts/dae_roadmap.py list`); if it matches a planned roadmap item, say so and offer to promote *that* item (carry its `id` as `roadmap_ref`) rather than starting a disconnected idea. Continue mode: echo prior state in one line, then resume.
 3. **Brainstorm (divergent)** — explore intent, scope, alternatives; one question per turn. Surface charter signals (e.g. payment paths cap autonomy), ADR connections, and "too big — decompose?" flags as they arise.
 4. **Surface the outcome** — at a natural inflection, recommend an outcome (promote / park / drop); the user confirms. Never auto-execute. If the user says "drop" but there's a concrete reason it's worth parking, ask once.
 5. **Execute the outcome:**
    - **Drop** — append one line to `.engineer/discussions.log`: `<ISO-timestamp> | <slug> | dropped | <one-line why>`. Draft the "why" from context; user confirms/edits.
    - **Park** — invoke `feature-init` with `feature_intake { status: parked, autonomy_level: null, ... }`.
-   - **Promote** — first resolve `autonomy_level` (low/medium/high, charter caps surfaced); if the user can't decide, fall back to park. Then invoke `feature-init` with `status: ready`.
+   - **Promote** — first resolve `autonomy_level` (low/medium/high, charter caps surfaced); if the user can't decide, fall back to park. Then invoke `feature-init` with `status: ready`. **If the idea came from a roadmap item**, pass its `roadmap_ref` so `feature-init` back-links and marks it in-progress (see `references/roadmap.md`).
+   - **Keep the roadmap alive** — when an idea is too big and decomposes into several future features, or you park something strategically worth tracking at the feature-list altitude, offer once to add it as a **roadmap item** (driver `upsert`, `status: planned`, a horizon) so the strategic layer stays current beyond onboard-time. The user's call — never auto-add. Skip silently if `manifest.roadmap.type` is `none`/unreachable.
 6. **Handoff** — for park/promote, write a `<timestamp>-discuss.md` handoff into the new feature folder. For drop, the log line is the record — no handoff.
 
 **Continuing a parked feature:** each session appends a new discuss handoff; `feature.md` is refined in place. Promoting a continued feature flips status to `ready` directly — `feature-init` is not re-invoked.
@@ -36,4 +37,5 @@ For park/promote, emit per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`
 
 - [Discuss & Upstream Funnel](https://www.notion.so/35a5ecdee0e281eaa35fced0c4e23384) — funnel, drop-log format, park/promote paths
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — feature.md schema, autonomy levels
+- `references/roadmap.md` — the roadmap ↔ feature funnel (promote from / keep alive)
 - Sister skill: `feature-init` (invoked for park/promote).

@@ -25,6 +25,7 @@ Resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_r
 
 - **In-flight features** — every `features/*/feature.md` (status) + `progress.md` (current checkpoint; whether it's blocked or ready to advance)
 - **Consolidation backlog** — `.engineer/consolidation.md` if present (coverage backlog + triage order)
+- **Roadmap (strategic feature list)** — the next *unstarted* roadmap item(s) via the driver (`local` = `${CLAUDE_PLUGIN_ROOT}/scripts/dae_roadmap.py next-unstarted`; MCP/CLI/API-backed = the connected channel — see `references/roadmap.md`). This is the **"what's next in the roadmap"** altitude — candidate features not yet promoted to a feature folder, the forward-looking complement to the consolidation backlog. If `manifest.roadmap.type` is `none`, or its host is unreachable (MCP disconnected / CLI gone), **skip it with a one-line note** — degrade gracefully, never error.
 - **Parked ideas** — `features/*/` with `status: parked`; `.engineer/discussions.log`
 - **Tracker captures (triage queue)** — tasks a human added *directly to the onboarded tracker*: rows with no `Slug` yet (the `reconcile()` orphan-as-intake case, see `references/tracker.md`), or `.engineer/inbox.md` lines in local mode. These are quick-captured bugs/ideas/tasks awaiting triage — not yet a feature or fix.
 - **Pending human actions** — recent `handoffs/*.md` (per-feature and `.engineer/handoffs/`) flagged `human_action_needed: yes`
@@ -38,7 +39,7 @@ Resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_r
 
 If a stale merged branch was detected, defer to the `post-merge` skill — it owns the full cleanup flow (checkout, pull, branch -d, prune, tracker update). At autonomy `high`/`medium`, auto-invoke `/engineer.post-merge` before continuing to Step 2. At `low`, surface the finding and stop until the user invokes it themselves. Do not inline the cleanup commands here — keep `next` advisory and let the dedicated skill do the work, so the post-merge handoff lands in the audit trail.
 
-### Step 2 — Triage into seven buckets
+### Step 2 — Triage into eight buckets
 
 ```
 NEEDS YOUR DECISION   — blocked features; handoffs flagged human_action_needed.
@@ -61,6 +62,16 @@ TRIAGE                — tasks added directly to the tracker (a row with no Slu
                         in for DAE to pick up, not yet a feature or fix. For each:
                         promote (→ /fix, /discuss, /feature-init) or defer. A
                         triage bug that blocks users ranks with OPEN FIXES top tier.
+ON THE ROADMAP        — the next unstarted strategic feature(s) — roadmap items
+                        (status: planned, no feature_slug yet), ordered by
+                        horizon (now → next → later) then priority. This is the
+                        "what's next in the roadmap" answer: the highest-altitude
+                        candidate to START, distinct from finishing in-flight
+                        work. Promote via /discuss or /feature-init (writes
+                        roadmap_ref + marks the item in-progress — see
+                        references/roadmap.md). Items already in-flight (they
+                        carry a feature_slug) are hidden here — they appear under
+                        READY TO ADVANCE instead.
 COULD START           — the next consolidation-backlog item; parked ideas worth
                         promoting; fresh work.
 ```
@@ -73,7 +84,11 @@ Priority order:
 2. **Triage priority / dates** — consolidation-backlog order, feature `target` dates.
 3. **Dispatchability** — if the human has limited time, favour surfacing what can be *dispatched* (freeing the human) over what *needs* them.
 
-Present the seven buckets, then **one top recommendation** — the single best next action — with a one-line rationale and a suggested execution mode (you, local subagent, agent team, or cloud agent — for the last, the dispatch router gates via `dae_delegable.py`).
+Present the eight buckets, then a **two-altitude answer** — because "what's next" has two valid readings and the human asked for both:
+- **Next to ADVANCE/finish** — the single best *actionable* next step across in-flight work, fixes, and dispatch (the existing top pick). Unblocking and user-blocking defects win here.
+- **Next to START** — the top `ON THE ROADMAP` item: the next strategic feature to begin once there's capacity. Always shown so "what's next *in the roadmap*" is answered directly, even when the top actionable pick is finishing something else.
+
+Give one top recommendation with a one-line rationale and a suggested execution mode (you, local subagent, agent team, or cloud agent — for the last, the dispatch router gates via `dae_delegable.py`); name the roadmap's next-to-start alongside it. If in-flight work is clear (nothing to advance, no open fixes), the roadmap's next-to-start *becomes* the top pick.
 
 **Promoting a TRIAGE item** is the human's call — `next` only recommends. *Work it now* → promote to the right unit and start: bug→`/fix`, idea→`/discuss`, task→`/feature-init` (each reads the tracker row as intake, reuses its `tracker_ref`, and writes the assigned `Slug` back — no duplicate row). *Later* → leave it, optionally raise a `priority`/`Status`. *Drop* → set `Status: wontfix`.
 
@@ -102,12 +117,18 @@ TRIAGE (2)
   • bug: CSV export drops the UTF-8 BOM | blocks_user=yes — added to tracker, no slug yet
   • idea: dark mode for the settings page
 
+ON THE ROADMAP (2)
+  • bulk-export [now/p1] — admins export all records as CSV; not yet started
+  • dark-mode [next/p1] — settings dark theme
+
 COULD START (1)
   • parked: bulk-admin-export — discussed 3 weeks ago; promote if priorities allow
 
-→ TOP PICK: fix 2026-05-20-login-crash. Users are hitting a critical crash on iOS 17
-  with no workaround — this outranks new feature work. Run /fix to continue the
-  fix workflow. Then approve 042-customer-export's plan to unblock its pipeline.
+→ TOP PICK (advance): fix 2026-05-20-login-crash. Users are hitting a critical crash
+  on iOS 17 with no workaround — this outranks new feature work. Run /fix to continue.
+  Then approve 042-customer-export's plan to unblock its pipeline.
+→ NEXT TO START (roadmap): bulk-export — the top "now" item, unstarted. When the
+  crash is cleared, promote it with /discuss or /feature-init.
 ```
 
 ## When NOT to use this skill
@@ -122,3 +143,4 @@ COULD START (1)
 - The DAE methodology page — the three-layer visibility model; the parallelism model (one human driving several pipelines)
 - Sister skill: `session-summary` — the session-end bookend.
 - Sister skill: `fix` — produces the OPEN FIXES artifacts surfaced here.
+- `references/roadmap.md` — the roadmap drivers behind the ON THE ROADMAP bucket; `dae_roadmap.py next-unstarted`.
