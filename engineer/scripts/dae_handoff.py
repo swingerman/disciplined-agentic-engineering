@@ -9,7 +9,11 @@ Usage:
   dae_handoff.py <feature-dir>               report; exit 0 if consistent
   dae_handoff.py <feature-dir> --through N   exit non-zero unless checkpoint N
                                              is complete and there are no gaps
+  dae_handoff.py --status [START_DIR]        JSON: every feature's status,
+                                             latest-complete checkpoint, gaps,
+                                             and last handoff (project-wide)
 """
+import json
 import os
 import re
 import sys
@@ -177,9 +181,77 @@ def gate(feature_dir, through=None):
     return True, "ok -- latest complete checkpoint: %s" % a["latest_complete"]
 
 
+_STATUS_RE = re.compile(r"^status:[ \t]*(\S+)", re.MULTILINE)
+
+
+def _feature_status_field(feature_dir):
+    """feature.md frontmatter `status:`, or None."""
+    fm_path = os.path.join(feature_dir, "feature.md")
+    if not os.path.isfile(fm_path):
+        return None
+    with open(fm_path, encoding="utf-8") as f:
+        fm = dae_resolve.extract_frontmatter(f.read())
+    if not fm:
+        return None
+    m = _STATUS_RE.search(fm)
+    return m.group(1) if m else None
+
+
+def _last_handoff(feature_dir):
+    """Newest handoff filename by mtime, or None."""
+    hdir = os.path.join(feature_dir, "handoffs")
+    if not os.path.isdir(hdir):
+        return None
+    files = [n for n in os.listdir(hdir) if n.endswith(".md")]
+    if not files:
+        return None
+    files.sort(key=lambda n: os.path.getmtime(os.path.join(hdir, n)))
+    return files[-1]
+
+
+def project_status(start_dir="."):
+    """Enumerate every feature under the resolved features_root. One dict per
+    feature: status, latest-complete checkpoint, gaps, independence-violation
+    count, last handoff. Replaces the fragile inline grep/ls pipeline agents
+    hand-roll to survey pipeline state."""
+    root, manifest_path = dae_resolve.find_methodology_root(start_dir)
+    if not root:
+        return []
+    manifest = {}
+    if manifest_path and os.path.isfile(manifest_path):
+        with open(manifest_path, encoding="utf-8") as f:
+            try:
+                manifest = dae_resolve.read_manifest(f.read())
+            except dae_resolve.ManifestError:
+                manifest = {}
+    features_root = manifest.get("features_root") or "features/"
+    features_dir = os.path.join(root, features_root)
+    if not os.path.isdir(features_dir):
+        return []
+    out = []
+    for name in sorted(os.listdir(features_dir)):
+        fdir = os.path.join(features_dir, name)
+        if not os.path.isfile(os.path.join(fdir, "feature.md")):
+            continue
+        a = audit(fdir)
+        out.append({
+            "feature": name,
+            "status": _feature_status_field(fdir),
+            "latest_complete_cp": a["latest_complete"],
+            "gaps": a["gaps"],
+            "independence_violations": len(a["independence_violations"]),
+            "last_handoff": _last_handoff(fdir),
+        })
+    return out
+
+
 def main(argv):
     if not argv or argv[0] in ("-h", "--help"):
         print(__doc__)
+        return 0
+    if "--status" in argv:
+        rest = [a for a in argv if a != "--status"]
+        print(json.dumps(project_status(rest[0] if rest else "."), indent=1))
         return 0
     feature_dir = argv[0]
     through = None

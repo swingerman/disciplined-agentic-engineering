@@ -23,7 +23,7 @@ Start of a session, or any "what now?" moment. Project-scope; surveys the whole 
 
 Resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`). Then read, read-only:
 
-- **In-flight features** — every `features/*/feature.md` (status) + `progress.md` (current checkpoint; whether it's blocked or ready to advance)
+- **In-flight features** — every `features/*/feature.md` (status) + `progress.md` (current checkpoint; whether it's blocked or ready to advance). For each in-flight feature, run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_reconcile.py <feature-dir>` (read-only): if it reports `needs_reconcile: true`, the feature's PR is merged but its local state hasn't caught up — this is the authoritative merged-detection (via `gh`, so it catches **squash-merge and `git.manual`**, which the current-branch git-ancestry check below misses). Surface these under NEEDS YOUR DECISION and, at autonomy `medium`/`high`, offer `/engineer.post-merge` to reconcile (which flips the status and propagates). A `flag: merged-unverified` means it shipped without CP7 — call that out.
 - **Consolidation backlog** — `.engineer/consolidation.md` if present (coverage backlog + triage order)
 - **Roadmap (strategic feature list)** — the next *unstarted* roadmap item(s) via the driver (`local` = `${CLAUDE_PLUGIN_ROOT}/scripts/dae_roadmap.py next-unstarted`; MCP/CLI/API-backed = the connected channel — see `references/roadmap.md`). This is the **"what's next in the roadmap"** altitude — candidate features not yet promoted to a feature folder, the forward-looking complement to the consolidation backlog. If `manifest.roadmap.type` is `none`, or its host is unreachable (MCP disconnected / CLI gone), **skip it with a one-line note** — degrade gracefully, never error.
 - **Parked ideas** — `features/*/` with `status: parked`; `.engineer/discussions.log`
@@ -33,7 +33,7 @@ Resolve the methodology root + manifest via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_r
 - **Dispatched to cloud** — features whose latest handoff carries `cloud_session_url` (running on a cloud agent; PR pending). Surface as DISPATCHED — not actionable until the PR lands.
 - **CHARTER.md + manifest** — autonomy levels and path overrides, for execution-mode advice
 - **Open fixes** — `.engineer/fixes/*.md` via `${CLAUDE_PLUGIN_ROOT}/scripts/dae_fix.py list_open_fixes` (status != closed)
-- **Stale merged branch** — if the current branch is not `main`/`master`, run `git fetch origin --quiet` then check `git merge-base --is-ancestor HEAD origin/HEAD` (fallback `origin/main`). If true, the branch is merged and lingering — surface it as a STALE BRANCH item.
+- **Stale merged branch** — if the current branch is not `main`/`master`, run `git fetch origin --quiet` then check `git merge-base --is-ancestor HEAD origin/HEAD` (fallback `origin/main`). If true, the branch is merged and lingering — surface it as a STALE BRANCH item. (This git check only catches the *current* branch and only non-squash merges; the per-feature `dae_reconcile.py` probe above is the broader, `gh`-based merged-detection.)
 
 ### Step 1.5 — Offer branch cleanup (if stale)
 

@@ -4,7 +4,9 @@
 Run: python3 test_dae_gherkin.py
 """
 
+import io
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 
 import dae_gherkin as dg
 
@@ -155,6 +157,31 @@ class TestIRShape(unittest.TestCase):
     def test_scenario_keys(self):
         sc = dg.parse_spec(BASIC)["scenarios"][0]
         self.assertEqual(set(sc.keys()), {"name", "steps", "examples"})
+
+
+class TestMainUsage(unittest.TestCase):
+    def test_help_flag_prints_usage_and_exits_zero(self):
+        for flag in ("--help", "-h"):
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                rc = dg.main(["dae_gherkin.py", flag])
+            self.assertEqual(rc, 0)
+            self.assertIn("usage", buf.getvalue())
+
+    def test_no_args_is_usage_error(self):
+        with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            self.assertEqual(dg.main(["dae_gherkin.py"]), 3)
+
+    def test_fingerprint_is_stable_hex(self):
+        outs = []
+        for _ in range(2):
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                self.assertEqual(dg.main(["dae_gherkin.py", "--fingerprint"]), 0)
+            outs.append(buf.getvalue().strip())
+        self.assertEqual(len(outs[0]), 12)
+        int(outs[0], 16)          # valid hex
+        self.assertEqual(outs[0], outs[1])  # deterministic across runs
 
 
 if __name__ == "__main__":

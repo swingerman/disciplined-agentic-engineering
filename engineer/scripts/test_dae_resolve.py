@@ -620,5 +620,64 @@ class InfraQuirksValidationTests(unittest.TestCase):
         self.assertTrue(any("framework_constraints" in e for e in errors))
 
 
+class TestFixtureParity(unittest.TestCase):
+    def _with(self, fixture_parity):
+        m = dr.read_manifest(VALID_MANIFEST)
+        m.setdefault("acceptance", {})["fixture_parity"] = fixture_parity
+        return m
+
+    def test_valid_fixture_parity_passes(self):
+        errors, _ = dr.validate_manifest(self._with({"check": "make db-parity"}))
+        self.assertEqual([e for e in errors if "fixture_parity" in e], [])
+
+    def test_missing_check_is_error(self):
+        errors, _ = dr.validate_manifest(self._with({"note": "oops"}))
+        self.assertTrue(any("fixture_parity.check" in e for e in errors))
+
+    def test_empty_check_is_error(self):
+        errors, _ = dr.validate_manifest(self._with({"check": "   "}))
+        self.assertTrue(any("fixture_parity.check" in e for e in errors))
+
+    def test_absent_fixture_parity_is_fine(self):
+        errors, _ = dr.validate_manifest(dr.read_manifest(VALID_MANIFEST))
+        self.assertEqual([e for e in errors if "fixture_parity" in e], [])
+
+
+class TestWorktreePreview(unittest.TestCase):
+    def _with(self, wp):
+        m = dr.read_manifest(VALID_MANIFEST)
+        m["infra_quirks"] = {"worktree_preview": wp}
+        return m
+
+    def test_string_ok(self):
+        errors, _ = dr.validate_manifest(self._with("set THEME_PATH; docker restart web"))
+        self.assertEqual([e for e in errors if "worktree_preview" in e], [])
+
+    def test_non_string_is_error(self):
+        errors, _ = dr.validate_manifest(self._with(["a", "b"]))
+        self.assertTrue(any("worktree_preview" in e for e in errors))
+
+
+class TestQuotedColonListItems(unittest.TestCase):
+    def test_quoted_list_items_with_colons_parse_as_strings(self):
+        text = (
+            "infra_quirks:\n"
+            "  framework_constraints:\n"
+            '    - "Flutter web has no hot-reload: full rebuild required"\n'
+            '    - "Apache opcache: cold restart after schema change"\n'
+        )
+        m = dr.read_manifest(text)
+        self.assertEqual(
+            m["infra_quirks"]["framework_constraints"],
+            [
+                "Flutter web has no hot-reload: full rebuild required",
+                "Apache opcache: cold restart after schema change",
+            ],
+        )
+        errors = []
+        dr._validate_infra_quirks(errors, m)
+        self.assertEqual(errors, [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

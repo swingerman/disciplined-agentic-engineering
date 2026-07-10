@@ -313,5 +313,44 @@ class IndependenceViolationTests(unittest.TestCase):
         self.assertEqual(dh.independence_violations(d), [])
 
 
+class TestProjectStatus(unittest.TestCase):
+    def _root(self):
+        root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, root)
+        os.makedirs(os.path.join(root, ".engineer"))
+        with open(os.path.join(root, ".engineer", "manifest.yml"), "w") as f:
+            f.write('methodology_version: "0.2"\nfeatures_root: features/\n')
+        return root
+
+    def test_enumerates_features(self):
+        root = self._root()
+        fa = os.path.join(root, "features", "001-alpha", "handoffs")
+        os.makedirs(fa)
+        with open(os.path.join(root, "features", "001-alpha", "feature.md"), "w") as f:
+            f.write("---\nslug: 001-alpha\nstatus: in-progress\n---\n# a\n")
+        with open(os.path.join(fa, "h.md"), "w") as f:
+            f.write(HANDOFF_COMPLETE)
+        with open(os.path.join(root, "features", "001-alpha", "progress.md"), "w") as f:
+            f.write(PROGRESS)
+        fb = os.path.join(root, "features", "002-beta")
+        os.makedirs(fb)
+        with open(os.path.join(fb, "feature.md"), "w") as f:
+            f.write("---\nslug: 002-beta\nstatus: done\n---\n# b\n")
+        os.makedirs(os.path.join(root, "features", ".build"))  # skipped (no feature.md)
+
+        rows = dh.project_status(root)
+        self.assertEqual([r["feature"] for r in rows], ["001-alpha", "002-beta"])
+        self.assertEqual(rows[0]["status"], "in-progress")
+        self.assertEqual(rows[0]["latest_complete_cp"], 2)
+        self.assertEqual(rows[0]["last_handoff"], "h.md")
+        self.assertEqual(rows[1]["status"], "done")
+        self.assertIsNone(rows[1]["last_handoff"])
+
+    def test_no_manifest_returns_empty(self):
+        empty = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, empty)
+        self.assertEqual(dh.project_status(empty), [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

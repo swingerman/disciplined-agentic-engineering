@@ -24,6 +24,23 @@ After a skill writes its handoff, the next checkpoint often needs a **fresh agen
 
 Effective autonomy = `feature.md` `autonomy_level`, capped by `manifest.autonomy.path_overrides` for the feature's path. Read this once during the skill's resolve step; it's already loaded.
 
+## External-write gate — some actions are never auto
+
+`autonomy_level` governs *dispatching the next checkpoint*. It does NOT authorize
+**outward-facing or self-modifying writes**. These require **explicit human
+authorization every time, regardless of autonomy** — even at `high`:
+
+- pushing to a protected/default branch (`main`/`master`), or force-pushing;
+- creating/merging a PR, or posting a PR/issue comment;
+- self-modifying agent config (`.claude/settings.json`, hooks, this manifest);
+- any write to a live external system (prod, tracker rows a human owns, deploys).
+
+At `high` autonomy a vague prompt ("pick up where we left off", "merged") must
+**not** be read as consent to any of the above. Do the local pipeline work
+automatically; for an external/self write, ask first with the specific action
+named. (This is why the auto-mode safety classifier kept blocking these — the
+skill should ask proactively instead of relying on the net.)
+
 ## Channel — cloud-first, local fallback
 
 The autonomy table decides *whether* to dispatch. This decides *where*. Once a DISPATCH decision is made, prefer a **cloud agent** and fall back to a **local subagent** only when the environment requires it.
@@ -48,6 +65,16 @@ If the next checkpoint's work needs running infrastructure, **do not** write a "
 5. If the required infra is not declared in `manifest.yml` → stop with: "declare `<name>` in manifest.yml `infra:` section per the DAE infra schema, or pre-start the service." Do NOT fall back to grep-the-README reasoning; the declaration discipline is the contract.
 
 The old escape "I can't access live emulators / prod creds / hardware" is now narrowly: the script tried, the script failed, here's exactly what failed and how to fix it.
+
+## Fork safety
+
+When dispatching via the Agent tool, a **fork** (context-inheriting subagent) is
+NOT a safe vehicle for browser or iterative-capture work (screenshots, Playwright
+drives, anything that re-runs on its own output): a fork re-wakes on every
+detached-child completion and can self-perpetuate (a capture fork once looped
+~300k tokens and clobbered committed screenshots). Route such work to a **plain
+subagent (default isolation)** or a **workflow**, and never launch detached/
+background Bash runs inside a fork. See `${CLAUDE_PLUGIN_ROOT}/references/parallelism.md` (Fork safety).
 
 ## Subagent brief template
 

@@ -36,6 +36,15 @@ A step that spans many turns — an interview-style step such as the four-pass
 AC interview — is split into **one sub-todo per pass**, so a long step shows
 visible movement instead of sitting at `in_progress` for ten turns.
 
+**Parallelism check (planning-time reflex).** As you build the roadmap, run each
+set-valued step through the parallelism reflex —
+`${CLAUDE_PLUGIN_ROOT}/references/parallelism.md`. It decides, from *this*
+feature's actual work, whether the step decomposes into independent units (or
+would gain from a multi-agent quality pattern) and, if so, offers the right
+substrate — parallel subagents or a dynamic workflow — per the feature's
+`autonomy_level`. Scalar or single-item steps skip it silently: no offer, no
+noise. Discovery is per-run — never hardcode which steps fan out.
+
 ## The canonical pipeline
 
 `0 Onboard · 1.5 Ready · 2 ACs · 3 Spec · 4 Plan · 5 Implement · 6 Refine ·

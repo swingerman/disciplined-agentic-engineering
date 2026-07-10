@@ -34,7 +34,11 @@ The branch-hygiene skill that runs **immediately** after a PR merges — not def
 
 4. **Prune stale remote refs.** `git fetch origin --prune`. Removes pointers to remote branches that no longer exist (e.g. when the GitHub "delete branch on merge" setting removed the remote).
 
-5. **Update tracker (if applicable).** If the merged branch's feature has a `TrackedFeature` record, set its status to `done` and record `merged_at` from `gh pr view`. This dispatches via `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md` — at autonomy `medium`/`high`, auto-invoke `/engineer.progress-log`; at `low`, surface and ask.
+5. **Reconcile local state, then the tracker.** Flip the *local* `feature.md` status FIRST — otherwise `progress-log` (which derives the tracker record from local truth) and `next`/`reorient` (which read `feature.md status`) keep seeing `in-progress`. Run:
+   ```
+   ${CLAUDE_PLUGIN_ROOT}/scripts/dae_reconcile.py <merged-feature-dir> --apply
+   ```
+   It sets `feature.md status: done` when the PR is merged (detected via `gh`, so **squash-merge and `git.manual` are covered** — the git-ancestry check in Step 2 is not) and returns `flag: merged-unverified` when no CP7 verify handoff exists. **If flagged, surface it prominently** — the feature shipped with its ACs unverified; that is a discipline gap, not a clean close. Then dispatch `/engineer.progress-log` to propagate the done state to `progress.md` + the tracker (records `merged_at`). Per `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md` — auto at `medium`/`high`, surface-and-ask at `low`.
 
 6. **Handoff.** Emit a summary per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: null`; `artifacts: []`; `human_action_needed: no`. The handoff records: the merged branch name, the PR URL (if known), and the new HEAD commit. `recommended_next` points at `/engineer.next` if the feature is shipped, or the relevant fix/session continuation otherwise.
 

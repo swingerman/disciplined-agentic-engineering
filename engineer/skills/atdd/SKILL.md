@@ -52,6 +52,21 @@ Invoke the `atdd:atdd` skill, scoped to this feature: write the feature's
 (the `pipeline-builder` agent + the portable `dae_gherkin.py` parser). Present
 `spec.md` to the human for approval — specs are the human's contract.
 
+If the harness seeds a DB and `manifest.acceptance.fixture_parity.check` is set,
+require the generated pipeline to run that check as a **pre-run gate** (fail loud
+on fixture↔schema drift, before the acceptance tests), so drift can't fake a RED
+cliff or mask a real defect. See `${CLAUDE_PLUGIN_ROOT}/references/fixture-parity.md`
+— the robust fix (boot the test DB from canonical schema + migrations) belongs in
+the `pipeline-builder`, which this skill bridges to.
+
+If the generated CI runner needs `dae_gherkin.py` (it lives only in the
+version-pinned plugin cache and is absent in CI), vendor it into the project
+**with a drift check** rather than a bare copy that silently goes stale on a
+plugin bump: record `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/dae_gherkin.py --fingerprint`
+at vendor time and have CI assert the vendored copy's `--fingerprint` still matches
+it, failing loud on drift. (The robust fix — a pip-installable parser — also lives
+in the `pipeline-builder`.)
+
 ### Step 2 — Handoff
 
 Emit a summary per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`.

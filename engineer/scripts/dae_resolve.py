@@ -216,6 +216,12 @@ def _parse_list(lines, i, indent):
         if line_indent != indent or not content.startswith('- '):
             break
         item = content[2:].strip()
+        # A quoted or bracketed item is a scalar even if it contains ':'
+        # (e.g. framework_constraints: - "Flutter web has no hot-reload: rebuild").
+        if item[:1] in ('"', "'", '['):
+            result.append(_parse_scalar(item))
+            i += 1
+            continue
         key, sep, val = item.partition(':')
         if sep:  # list item is a map; first key sits on the `-` line
             item_indent = indent + 2
@@ -352,6 +358,15 @@ def validate_manifest(manifest):
     _check_enum(errors, manifest, "duplication", "skip", DUPLICATION_SKIP_VALUES)
     _check_enum(errors, manifest, "introversion", "skip", DUPLICATION_SKIP_VALUES)
 
+    # acceptance.fixture_parity — optional project-supplied pre-test drift gate.
+    acc = manifest.get("acceptance")
+    if isinstance(acc, dict) and acc.get("fixture_parity") is not None:
+        fp = acc.get("fixture_parity")
+        check = fp.get("check") if isinstance(fp, dict) else None
+        if not isinstance(check, str) or not check.strip():
+            errors.append("acceptance.fixture_parity.check must be a "
+                          "non-empty command string")
+
     val = manifest.get("validation")
     if isinstance(val, dict):
         ff = val.get("feature_flags")
@@ -452,6 +467,8 @@ def _validate_infra_quirks(errors, manifest):
             - "Flutter web has no hot-reload"
           recovery_commands:             # optional, map of str -> str
             coresimulator_wedged: "killall -9 com.apple.CoreSimulator.CoreSimulatorService"
+          worktree_preview: >            # optional, str: how to preview a
+            set THEME_PATH to the worktree and `docker compose restart web`
     """
     quirks = manifest.get("infra_quirks")
     if quirks is None:
@@ -476,6 +493,9 @@ def _validate_infra_quirks(errors, manifest):
         if not isinstance(rc, dict) or not all(
                 isinstance(k, str) and isinstance(v, str) for k, v in rc.items()):
             errors.append("infra_quirks.recovery_commands must be a map of str -> str")
+    wp = quirks.get("worktree_preview")
+    if wp is not None and not isinstance(wp, str):
+        errors.append("infra_quirks.worktree_preview must be a string or omitted")
 
 
 def _validate_infra(errors, manifest):

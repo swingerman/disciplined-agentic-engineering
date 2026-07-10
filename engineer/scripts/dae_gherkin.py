@@ -28,6 +28,7 @@ Exit codes:
     3  usage error
 """
 
+import hashlib
 import json
 import os
 import re
@@ -132,6 +133,15 @@ def parse_spec(text):
 
 def main(argv):
     args = argv[1:]
+    if args and args[0] in ("-h", "--help"):
+        sys.stdout.write("usage: dae_gherkin.py SPEC_MD [OUT_JSON] | --fingerprint\n")
+        return 0
+    if args and args[0] == "--fingerprint":
+        # Stable self-hash: a project that vendors this parser into CI can assert
+        # its copy's fingerprint equals the plugin's, failing loud on drift.
+        with open(__file__, "rb") as fh:
+            sys.stdout.write(hashlib.sha256(fh.read()).hexdigest()[:12] + "\n")
+        return 0
     if not (1 <= len(args) <= 2):
         sys.stderr.write("usage: dae_gherkin.py SPEC_MD [OUT_JSON]\n")
         return 3

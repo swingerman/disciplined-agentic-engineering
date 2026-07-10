@@ -36,7 +36,12 @@ loading a feature not yet started (`prime-context`); validating artifacts
 Resolve the methodology root + manifest via
 `${CLAUDE_PLUGIN_ROOT}/scripts/dae_resolve.py` (see `references/resolving.md`).
 Locate the feature (slug arg or branch name). If no feature is in scope, say so
-and suggest `next` instead.
+and suggest `next` instead. **Layout disambiguation:** if the project has BOTH a
+`features/NNN-*/` and a `specs/NNN-*/` tree (a speckit migration in progress),
+say which one holds this feature; and if more than one acceptance-IR convention
+exists (`features/NNN/.build/spec.json` vs an `acceptance-pipeline/ir/` per-GWT
+layout), name the one in force — so re-anchoring doesn't rediscover the split.
+(`speckit-consolidate` unifies it.)
 
 ### Step 2 — Reload the discipline contract, then the task pointer
 
@@ -58,6 +63,12 @@ Read, read-only, in this order:
 
 Also run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py <feature-dir>` — report any
 checkpoint marked done without a complete handoff as a discipline gap.
+
+Also run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_reconcile.py <feature-dir>` (read-only):
+if it reports `needs_reconcile: true`, this feature's PR is already merged (`gh`-detected —
+covers squash-merge and `git.manual`) and the local state is stale. Do **not** re-anchor on
+a phantom in-progress checkpoint — surface that it shipped and recommend `/engineer.post-merge`
+to reconcile. `reorient` is read-only, so it never applies the flip itself.
 
 ### Step 3 — Emit the orientation block
 
