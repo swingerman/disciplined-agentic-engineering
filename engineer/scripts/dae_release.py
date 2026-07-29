@@ -14,9 +14,10 @@ Usage:
 Default is a dry-run (prints the plan). --apply performs it:
   1. back up installed_plugins.json
   2. write the new version into the source plugin.json (targeted, minimal diff)
+  2b. sync the plugin's entry in the marketplace's marketplace.json
   3. copy source -> a fresh cache dir for the new version (skips .git/.build/pycache)
   4. repoint installed_plugins.json entry (installPath + version + lastUpdated)
-  5. verify the cache plugin.json version and the install pointer agree
+  5. verify cache plugin.json, marketplace entry, and install pointer all agree
 
 Output: JSON plan/result. Exit 0 ok; 2 plugin/source not found; 3 usage error;
 4 refused (cache dir already exists — use --force).
@@ -80,14 +81,40 @@ def _set_plugin_version(text, new_version):
     return new
 
 
+def _set_marketplace_version(text, plugin, new_version):
+    """Rewrite the named plugin's "version" inside marketplace.json.
+
+    marketplace.json carries several version fields — one under `metadata` for
+    the marketplace itself, plus one per plugin entry. This targets the first
+    `"version"` *following* that plugin's `"name"`, which is unambiguous because
+    the metadata block precedes the plugins array. The marketplace's own
+    `metadata.version` is deliberately left alone: bumping it is a release
+    decision about the marketplace, not a side effect of shipping one plugin.
+
+    Returns (new_text, changed). A plugin absent from the manifest is not an
+    error — some plugins are installed but unlisted.
+    """
+    m = re.search(r'"name"\s*:\s*"%s"' % re.escape(plugin), text)
+    if not m:
+        return text, False
+    head, tail = text[:m.end()], text[m.end():]
+    new_tail, n = _VERSION_RE.subn(r'\1"%s"' % new_version, tail, count=1)
+    if n != 1:
+        return text, False
+    return head + new_tail, True
+
+
 def plan_release(plugin, level="patch", set_version=None,
                  marketplaces=MARKETPLACES, cache=CACHE):
     src_dir, mk, pj_path, cur = find_source(plugin, marketplaces)
     new_version = set_version or bump_version(cur, level)
     cache_dir = os.path.join(cache, mk, plugin, new_version)
+    mkt_json = os.path.join(marketplaces, mk, ".claude-plugin",
+                            "marketplace.json")
     return {
         "plugin": plugin, "marketplace": mk,
         "source_dir": src_dir, "plugin_json": pj_path,
+        "marketplace_json": mkt_json if os.path.isfile(mkt_json) else None,
         "current_version": cur, "new_version": new_version,
         "cache_dir": cache_dir,
         "installed_key": "%s@%s" % (plugin, mk),
@@ -113,6 +140,20 @@ def apply_release(pl, installed_path=INSTALLED, force=False):
         text = f.read()
     with open(pl["plugin_json"], "w", encoding="utf-8") as f:
         f.write(_set_plugin_version(text, pl["new_version"]))
+
+    # 2b. keep the marketplace manifest in step. This is what the marketplace
+    # advertises to anyone installing; letting it drift from plugin.json means
+    # shipping a version nobody can install. (engineer once advertised 0.18.0
+    # while 0.21.0 was live, because this step did not exist.)
+    marketplace_synced = False
+    if pl.get("marketplace_json"):
+        with open(pl["marketplace_json"], encoding="utf-8") as f:
+            mtext = f.read()
+        mnew, marketplace_synced = _set_marketplace_version(
+            mtext, pl["plugin"], pl["new_version"])
+        if marketplace_synced:
+            with open(pl["marketplace_json"], "w", encoding="utf-8") as f:
+                f.write(mnew)
 
     # 3. build the cache dir
     if pl["cache_exists"] and force:
@@ -140,9 +181,16 @@ def apply_release(pl, installed_path=INSTALLED, force=False):
     if os.path.isfile(cache_pj):
         with open(cache_pj, encoding="utf-8") as f:
             cache_ver = json.load(f).get("version")
-    ok = (cache_ver == pl["new_version"]) and (repointed or not os.path.isfile(installed_path))
+    # The marketplace entry is part of "shipped": a correct cache and install
+    # pointer still leave the plugin uninstallable-at-the-right-version if the
+    # manifest advertises something else.
+    mkt_ok = marketplace_synced or not pl.get("marketplace_json")
+    ok = ((cache_ver == pl["new_version"])
+          and (repointed or not os.path.isfile(installed_path))
+          and mkt_ok)
 
     return {**pl, "applied": True, "backup": backup, "repointed": repointed,
+            "marketplace_synced": marketplace_synced,
             "cache_version": cache_ver, "verified": ok}
 
 

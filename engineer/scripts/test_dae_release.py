@@ -25,6 +25,19 @@ def _setup(tmp):
                 '  "description": "d"\n}\n')
     with open(os.path.join(src, "scripts", "x.py"), "w") as f:
         f.write("print(1)\n")
+    # marketplace.json: a metadata.version that must NOT move, plus two plugin
+    # entries so we can prove the right one is targeted.
+    os.makedirs(os.path.join(mk_root, "my-mp", ".claude-plugin"), exist_ok=True)
+    with open(os.path.join(mk_root, "my-mp", ".claude-plugin",
+                           "marketplace.json"), "w") as f:
+        f.write(
+            '{\n  "name": "my-mp",\n'
+            '  "metadata": {\n    "version": "1.11.0"\n  },\n'
+            '  "plugins": [\n'
+            '    {\n      "name": "atdd",\n      "source": "./",\n'
+            '      "version": "0.8.3"\n    },\n'
+            '    {\n      "name": "engineer",\n      "source": "./engineer",\n'
+            '      "version": "0.18.0"\n    }\n  ]\n}\n')
     installed = os.path.join(tmp, "installed_plugins.json")
     with open(installed, "w") as f:
         json.dump({"version": 1, "plugins": {"engineer@my-mp": [
@@ -118,6 +131,75 @@ class TestApply(unittest.TestCase):
             pl["cache_exists"] = True
             res = dr.apply_release(pl, installed_path=installed, force=True)
             self.assertTrue(res["verified"])
+
+
+class TestMarketplaceSync(unittest.TestCase):
+    """The manifest the marketplace advertises must not drift from plugin.json.
+
+    engineer really did advertise 0.18.0 while 0.21.0 was the live version,
+    because apply_release never touched marketplace.json.
+    """
+
+    def _marketplace(self, mk_root):
+        with open(os.path.join(mk_root, "my-mp", ".claude-plugin",
+                               "marketplace.json")) as f:
+            return json.load(f)
+
+    def test_apply_syncs_the_plugin_entry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            mk, cache, installed, _ = _setup(tmp)
+            pl = dr.plan_release("engineer", "minor", marketplaces=mk,
+                                 cache=cache)
+            res = dr.apply_release(pl, installed_path=installed)
+            data = self._marketplace(mk)
+        self.assertTrue(res["marketplace_synced"])
+        self.assertTrue(res["verified"])
+        entry = [p for p in data["plugins"] if p["name"] == "engineer"][0]
+        self.assertEqual(entry["version"], "0.21.0")
+
+    def test_other_plugins_untouched(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            mk, cache, installed, _ = _setup(tmp)
+            pl = dr.plan_release("engineer", "minor", marketplaces=mk,
+                                 cache=cache)
+            dr.apply_release(pl, installed_path=installed)
+            data = self._marketplace(mk)
+        entry = [p for p in data["plugins"] if p["name"] == "atdd"][0]
+        self.assertEqual(entry["version"], "0.8.3")
+
+    def test_marketplace_metadata_version_is_not_bumped(self):
+        # Bumping the marketplace's own version is a separate release decision.
+        with tempfile.TemporaryDirectory() as tmp:
+            mk, cache, installed, _ = _setup(tmp)
+            pl = dr.plan_release("engineer", "minor", marketplaces=mk,
+                                 cache=cache)
+            dr.apply_release(pl, installed_path=installed)
+            data = self._marketplace(mk)
+        self.assertEqual(data["metadata"]["version"], "1.11.0")
+
+    def test_plan_reports_the_manifest_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            mk, cache, _, _ = _setup(tmp)
+            pl = dr.plan_release("engineer", marketplaces=mk, cache=cache)
+        self.assertTrue(pl["marketplace_json"].endswith("marketplace.json"))
+
+    def test_missing_manifest_is_not_an_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            mk, cache, installed, _ = _setup(tmp)
+            os.remove(os.path.join(mk, "my-mp", ".claude-plugin",
+                                   "marketplace.json"))
+            pl = dr.plan_release("engineer", "minor", marketplaces=mk,
+                                 cache=cache)
+            res = dr.apply_release(pl, installed_path=installed)
+        self.assertIsNone(pl["marketplace_json"])
+        self.assertFalse(res["marketplace_synced"])
+        self.assertTrue(res["verified"])
+
+    def test_unlisted_plugin_is_not_an_error(self):
+        text = '{"plugins": [{"name": "other", "version": "1.0.0"}]}'
+        out, changed = dr._set_marketplace_version(text, "engineer", "9.9.9")
+        self.assertFalse(changed)
+        self.assertEqual(out, text)
 
 
 if __name__ == "__main__":
