@@ -82,6 +82,9 @@ When you do dispatch via the Agent tool, use this shape:
 
 ```
 description: <Checkpoint N for <feature-slug>>
+model: <economy | inherit | frontier — a class, not a product name;
+        resolve against the Agent tool's live `model` enum at dispatch time.
+        See references/model-classes.md>
 prompt:
   You are running Checkpoint <N> for feature <slug> in a DAE methodology project.
 
@@ -99,9 +102,39 @@ prompt:
   - Code lookup: <LSP is available — use it for find-references / definitions / call-hierarchy | LSP is unavailable — fall back to grep + Read>. See references/code-lookup.md.
 
   Report on completion: <what the parent skill expects back>.
+  <the reporting contract — see below>
 ```
 
 The brief is **self-contained** — the subagent doesn't see the parent skill's conversation.
+
+**`model:`** carries a **class**, never a product name — model names are retired
+and replaced, and one pinned into a skill becomes a silent bug the day it is
+deprecated. Defaults to `inherit` (omit the field). Use `economy` when the
+charge is mechanical (a fixed rubric, a schema check, codegen from an IR, a
+script wrapper) and `frontier` for a bounded one-shot judgment call. Resolve the
+class to an actual model by reading the Agent tool's own `model` enum at dispatch
+time — that list is current by construction. Decide the class per dispatch from
+the actual charge; never hardcode either a class or a model into a skill. Full
+rules: `${CLAUDE_PLUGIN_ROOT}/references/model-classes.md`.
+
+## The reporting contract — every dispatch, no exceptions
+
+A dispatched agent's plain text is a **return value**, not a message to a human,
+and depending on the channel it may be invisible outside its own session. Agents
+have gone idle with completed findings stranded. Close the brief with the
+delivery instruction spelled out:
+
+    Your final text is the return value, not a message to a human. It is not
+    visible to the parent session unless you deliver it through the channel
+    named here: <SendMessage to "<parent-id>" | your final text (Agent-tool
+    subagent)>. Deliver before you finish, even if brief or partial. If you did
+    not actually do the work described, say so plainly rather than
+    reconstructing something plausible — downstream artifacts will be edited
+    based on what you report.
+
+The last sentence matters as much as the first: a plausible reconstruction from
+an agent that never ran the investigation is worse than an empty report, because
+it is acted on.
 
 ## What this rule replaces
 

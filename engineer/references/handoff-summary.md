@@ -29,6 +29,13 @@ exit_criteria:                       # required on checkpoint-advancing skills
     verified_by: <tool | human | judgment>
     met: <true | false>
     evidence: <one line; for `tool`, the command + its output>
+panel_findings:                      # required when a review panel ran (CP2/CP4)
+  - role: <adviser | advocate>
+    severity: <error | advisory>
+    claim: <one line — the defect, not the topic>
+    location: <file:line, or file>
+    accepted: <yes | no>
+    disposition: <what was done, or why it was rejected>
 findings_summary: <one line>          # optional
 human_action_needed: <yes | no>
 human_action_kind: <review | decision | approval | none>   # optional
@@ -63,6 +70,7 @@ What state was written. Optional section.
 
 - **Required frontmatter:** `skill`, `agent_id`, `started`, `ended`, `artifacts`, `human_action_needed`, `recommended_next`, `status`
 - **Required on checkpoint-advancing skills:** `checkpoint`, `exit_criteria` — required when `checkpoint` is set; both omitted for off-pipeline skills (`checkpoint: null`).
+- **Required when a review panel ran:** `panel_findings` — on `discover-acs` (CP2) and `plan` (CP4) whenever the panel was dispatched. Record **every** finding, accepted or rejected; an undocumented rejection means the next agent re-litigates it. See `${CLAUDE_PLUGIN_ROOT}/references/review-panel.md`.
 - **Optional frontmatter:** `agent_role`, `findings_summary`, `human_action_kind`, `tracker_update`, `cloud_session_url`
 - **Required body:** What I did, Artifacts produced, Human action needed?, Recommended next step
 - **Optional body:** Findings, Tracker update
@@ -73,7 +81,17 @@ What state was written. Optional section.
 - On crash/interruption, emit a partial summary with `status: interrupted` capturing what was done.
 - `agent_id` enforces verification independence (Principle 7): a verification handoff's `agent_id` must differ from the implementer's for the same feature. Enforced by `dae_handoff.py gate()` — any CP6/CP7/CP8 handoff whose `agent_id` equals the feature's CP5 handoff `agent_id` fails the gate with a "Principle 7" error. If the verify subagent crashes, the implementer MUST NOT self-verify — re-dispatch a fresh subagent or pause for the human.
 - `exit_criteria[*].met` accepts `true`, `false`, or `partial`. `partial` counts as **not met** for the gate but is preserved distinctly in reports so the human can see the criterion was *attempted* but didn't fully satisfy. Never auto-promote `partial` to `true` to move forward.
+- An **unaddressed `error`-severity `panel_findings` entry blocks the checkpoint** at autonomy `medium`/`high`: set `human_action_needed: yes` and do not dispatch the next checkpoint. "Addressed" is `accepted: yes` with the artifact edited, or `accepted: no` with a disposition — silence is not addressing it. Advisory at autonomy `low`.
 - Writing the summary triggers `progress-log`, which propagates it to `progress.md` and the tracker.
+- **Ontology gate.** Before writing the handoff, run
+  `${CLAUDE_PLUGIN_ROOT}/scripts/dae_ontology.py <feature-dir>`. It checks the
+  mechanical constraints over the artifact graph — enumerations, functional
+  properties, parent/child inverses, AC↔scenario coverage closure, and the
+  Principle 7 disjointness — deterministically, in milliseconds, so they are
+  checked *every* time rather than whenever someone remembers to run
+  `consistency-check`. Errors block the checkpoint at autonomy `medium`/`high`
+  (fix the artifact, re-run); warnings are surfaced and continue. Advisory at
+  `low`. See `${CLAUDE_PLUGIN_ROOT}/references/ontology.md`.
 - **Handoff-as-gate.** A checkpoint is not complete until its handoff exists, has `status: complete`, and asserts every `exit_criteria` entry `met: true`. A skill that advances checkpoint N+1 MUST verify checkpoint N is complete before starting — run `${CLAUDE_PLUGIN_ROOT}/scripts/dae_handoff.py <feature> --through N`. On a non-zero exit, stop and surface the gap to the human; do not proceed and do not auto-fix.
 
 Full schema: [DAE Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207), Section 5.

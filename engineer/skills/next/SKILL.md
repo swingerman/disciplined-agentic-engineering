@@ -144,3 +144,4 @@ COULD START (1)
 - Sister skill: `session-summary` — the session-end bookend.
 - Sister skill: `fix` — produces the OPEN FIXES artifacts surfaced here.
 - `references/roadmap.md` — the roadmap drivers behind the ON THE ROADMAP bucket; `dae_roadmap.py next-unstarted`.
+- `${CLAUDE_PLUGIN_ROOT}/references/host-capabilities.md` — the optional **render** capability. Eight buckets of in-flight work is a dashboard wearing a list's clothing; offer a rendered board alongside — never instead of — the text survey.

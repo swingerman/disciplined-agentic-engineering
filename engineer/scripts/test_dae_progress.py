@@ -115,6 +115,62 @@ class BreadcrumbTests(unittest.TestCase):
         self.assertIn("no CURRENT header", out)
 
 
+def _write_fm(feature_dir, body):
+    """Write a feature.md with the given frontmatter body."""
+    with open(os.path.join(feature_dir, "feature.md"), "w",
+              encoding="utf-8") as f:
+        f.write("---\n" + body + "\n---\n\n# Feature\n")
+
+
+class RoadmapLineTests(unittest.TestCase):
+    def test_absent_feature_md_yields_empty(self):
+        with tempfile.TemporaryDirectory() as d:
+            feat = _write_feature(d, "010-x", TABLE)
+            self.assertEqual(dae_progress.roadmap_line(feat), "")
+
+    def test_linked_item_shows_ref_and_status(self):
+        with tempfile.TemporaryDirectory() as d:
+            feat = _write_feature(d, "010-x", TABLE)
+            _write_fm(feat, "slug: 010-x\nroadmap_ref: bulk-export\nstatus: ready")
+            line = dae_progress.roadmap_line(feat)
+        self.assertIn("ROADMAP ▸ bulk-export", line)
+        self.assertIn("(ready)", line)
+
+    def test_unlinked_feature_says_so(self):
+        with tempfile.TemporaryDirectory() as d:
+            feat = _write_feature(d, "010-x", TABLE)
+            _write_fm(feat, "slug: 010-x\nstatus: in-progress")
+            line = dae_progress.roadmap_line(feat)
+        self.assertIn("not linked", line)
+        self.assertIn("in-progress", line)
+
+    def test_parent_and_children_are_surfaced(self):
+        with tempfile.TemporaryDirectory() as d:
+            feat = _write_feature(d, "008-x", TABLE)
+            _write_fm(feat, "slug: 008-x\nroadmap_ref: design-foundations\n"
+                            "status: ready\nparent_feature: 007-nav\n"
+                            "child_features:\n  - 009-a\n  - 010-b")
+            line = dae_progress.roadmap_line(feat)
+        self.assertIn("child of 007-nav", line)
+        self.assertIn("parent of 2", line)
+
+    def test_breadcrumb_appends_roadmap_line(self):
+        with tempfile.TemporaryDirectory() as d:
+            feat = _write_feature(d, "010-x", CURRENT + "\n" + TABLE)
+            _write_fm(feat, "slug: 010-x\nroadmap_ref: bulk-export\nstatus: ready")
+            out = dae_progress.breadcrumb(feat)
+        self.assertIn("ROADMAP ▸ bulk-export", out)
+        # still renders the checkpoint stops and detail
+        self.assertIn("▶3 Spec", out)
+        self.assertIn("NEXT: write spec.md", out)
+
+    def test_breadcrumb_omits_roadmap_line_when_no_feature_md(self):
+        with tempfile.TemporaryDirectory() as d:
+            feat = _write_feature(d, "010-x", CURRENT + "\n" + TABLE)
+            out = dae_progress.breadcrumb(feat)
+        self.assertNotIn("ROADMAP", out)
+
+
 class MainTests(unittest.TestCase):
     def test_help_returns_zero(self):
         self.assertEqual(dae_progress.main(["--help"]), 0)

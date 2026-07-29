@@ -40,14 +40,16 @@ The branch-hygiene skill that runs **immediately** after a PR merges — not def
    ```
    It sets `feature.md status: done` when the PR is merged (detected via `gh`, so **squash-merge and `git.manual` are covered** — the git-ancestry check in Step 2 is not) and returns `flag: merged-unverified` when no CP7 verify handoff exists. **If flagged, surface it prominently** — the feature shipped with its ACs unverified; that is a discipline gap, not a clean close. Then dispatch `/engineer.progress-log` to propagate the done state to `progress.md` + the tracker (records `merged_at`). Per `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md` — auto at `medium`/`high`, surface-and-ask at `low`.
 
-6. **Handoff.** Emit a summary per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: null`; `artifacts: []`; `human_action_needed: no`. The handoff records: the merged branch name, the PR URL (if known), and the new HEAD commit. `recommended_next` points at `/engineer.next` if the feature is shipped, or the relevant fix/session continuation otherwise.
+6. **Close the session log.** A merged feature is the clearest session boundary there is — the work shipped and the next session starts somewhere else. Auto-invoke `/engineer.session-summary` at autonomy `medium`/`high`; confirm-then-invoke at `low`. This is the human-readable "how do I pick this up" record; without it the only trace of the session is machine handoffs. Skip if a session-summary entry for today already exists on this feature.
+
+7. **Handoff.** Emit a summary per `${CLAUDE_PLUGIN_ROOT}/references/handoff-summary.md`. `checkpoint: null`; `artifacts: []`; `human_action_needed: no`. The handoff records: the merged branch name, the PR URL (if known), and the new HEAD commit. `recommended_next` points at `/engineer.next` if the feature is shipped, or the relevant fix/session continuation otherwise.
 
 ## Autonomy dispatch
 
 | Level | Behavior |
 |---|---|
-| `high` | Run all six steps. Report a one-line summary. |
-| `medium` | Run all six steps. Report what changed (one short paragraph). |
+| `high` | Run all seven steps. Report a one-line summary. |
+| `medium` | Run all seven steps. Report what changed (one short paragraph). |
 | `low` | Surface the planned commands and the merge-state evidence; wait for confirmation before running. |
 
 ## When NOT to use this skill

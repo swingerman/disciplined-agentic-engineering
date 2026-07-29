@@ -63,7 +63,8 @@ blocks the skill. Then create one TodoWrite todo per workflow step below. See
 5. **Handle scope drift** — if a behavior surfaces outside `feature.md`'s outcome, offer three options: broaden `feature.md`, drop as out-of-scope, or park a separate `discuss`. User picks.
 6. **Coverage check** — before writing, report ACs captured + which passes were covered; if a pass was skipped, prompt once.
 7. **Write `acs.md`** — YAML frontmatter (`ac_count`, `high_priority_count`, `discovered`) + numbered `## AC-N: <name>` sections, each with `Priority`, `Type`, and a domain-language body.
-8. **Handoff** — emit a summary.
+8. **Review panel** — dispatch the standing adviser + advocate pair against `acs.md` per `${CLAUDE_PLUGIN_ROOT}/references/review-panel.md`. This is the cheapest place in the pipeline to catch a wrong AC: `atdd` formalizes these into executable specs next, and everything downstream is derived from them. Autonomy-keyed (offer at `low`, auto at `medium`/`high`); skip silently on a trivial AC set. In **reverse-engineer mode** add the reverse-engineering clause to both briefs — an AC read back off working code is the exact case where unfalsifiable and merely-descriptive ACs slip through. Fold the findings into `acs.md`, then record every finding — accepted or rejected — as `panel_findings[]` in the handoff.
+9. **Handoff** — emit a summary.
 
 Re-invoking on a feature with existing `acs.md` is an edit pass (preserve AC IDs). Big restructures → `feature-edit`.
 
@@ -80,6 +81,7 @@ ACs ship with `human_action_needed: yes` (the human owns the AC contract) — so
 ## References
 
 - `${CLAUDE_PLUGIN_ROOT}/references/handoff-dispatch.md` — when to dispatch vs stop
+- `${CLAUDE_PLUGIN_ROOT}/references/review-panel.md` — the Step 8 adviser + advocate gate
 - `${CLAUDE_PLUGIN_ROOT}/references/ac-coverage/README.md` — index of domain-aware coverage checklists
 - [Foundation Design](https://www.notion.so/3585ecdee0e2811bbc67ff4913c03207) — feature.md schema
 - The DAE methodology page — why ACs and specs are separate

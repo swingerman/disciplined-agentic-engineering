@@ -92,17 +92,26 @@ One-line offer shape:
 Recognise these fast — but the trigger is always the real work, and any of them
 stays sequential when this feature's N is small:
 
-| Where | Decomposes over | Pattern | Tier |
-|---|---|---|---|
-| onboard — discover features | modules × discovery angles | multi-modal sweep | 3 |
-| refine — review changed code | files × dimensions | fan-out + adversarial charter-verify | 3 |
-| fix / atdd-mutate — harden | surviving mutants | loop-until-score | 3 |
-| fix — introversion confirm | flagged vacuous tests | fan-out + verify | 2/3 |
-| consistency-check `--project` | features | fan-out (judgment checks) | 3 |
-| progress-log `--project` | features → tracker | fan-out | 2/3 |
-| plan — propose architecture | design angles (MVP / risk / reuse-first) | judge-panel → human picks | 2 |
-| discover-acs (reverse-eng) | the four passes over existing material | multi-modal sweep → dedup | 2 |
-| fix — investigate | top-3 candidate features | parallel prime-context | 2 |
+| Where | Decomposes over | Pattern | Tier | Model class |
+|---|---|---|---|---|
+| onboard — discover features | modules × discovery angles | multi-modal sweep | 3 | economy |
+| refine — review changed code | files × dimensions | fan-out + adversarial charter-verify | 3 | inherit |
+| fix / atdd-mutate — harden | surviving mutants | loop-until-score | 3 | inherit |
+| fix — introversion confirm | flagged vacuous tests | fan-out + verify | 2/3 | economy |
+| consistency-check `--project` | features | fan-out (judgment checks) | 3 | economy |
+| progress-log `--project` | features → tracker | fan-out | 2/3 | economy |
+| plan — propose architecture | design angles (MVP / risk / reuse-first) | judge-panel → human picks | 2 | inherit |
+| discover-acs (reverse-eng) | the four passes over existing material | multi-modal sweep → dedup | 2 | inherit |
+| fix — investigate | top-3 candidate features | parallel prime-context | 2 | economy |
+| **CP2/CP4 exit — review panel** | the two standing roles | adviser + advocate, concurrent | 2 | frontier / inherit |
+
+**Tier** above is the parallelism substrate (1/2/3); **Model class** is a
+different axis — `economy` / `inherit` / `frontier`, never a product name, because
+model names get deprecated and classes do not. It is a prior, not a contract:
+re-derive it per dispatch from the actual charge, and resolve the class against
+the Agent tool's live `model` enum, per
+`${CLAUDE_PLUGIN_ROOT}/references/model-classes.md`. The review panel is the one fixed-composition
+entry: see `${CLAUDE_PLUGIN_ROOT}/references/review-panel.md`.
 
 Tier-3 workflow scripts stay small and pass the item list as `args`; keep the
 script next to the skill that uses it.

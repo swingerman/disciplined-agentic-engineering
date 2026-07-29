@@ -9,7 +9,15 @@ Write the per-session entry in a feature's `session-log.md` so the human can clo
 
 ## When to use
 
-At the end of a work session on a feature. A Stop hook may auto-invoke it; that hook is optional plugin config, not part of this skill.
+At the end of a work session on a feature. Three boundaries reach it without the human remembering to:
+
+- **The feature merged** — `post-merge` Step 6 auto-invokes it at autonomy `medium`/`high`.
+- **The context is about to compact** — an optional `PreCompact` hook; see `${CLAUDE_PLUGIN_ROOT}/examples/pre-compact-session-summary.md`. This is the boundary where the pickup record matters most, because everything else about the session is about to be summarized away.
+- **The human stops** — an optional `Stop` hook.
+
+Both hooks are project config, not part of this skill.
+
+It is deliberately **not** invoked at every checkpoint exit: this is a per-session record, and several entries a day makes `session-log.md` useless for the one job it has — being readable when you come back cold.
 
 **Not for:** mid-session (nothing's wrapping up); syncing the tracker (`progress-log`); per-skill records (each skill's own handoff).
 
